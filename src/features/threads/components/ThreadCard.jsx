@@ -13,8 +13,8 @@ import {
   neutralizeVoteAsync,
   optimisticVote,
   rollbackVote,
-  selectIsAuthenticated,
 } from '../threadsSlice'
+import { selectIsAuthenticated } from '../../auth/authSlice'
 
 const ThreadCard = ({
   thread,

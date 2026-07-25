@@ -166,4 +166,8 @@ const ToastItem = ({ toast: toastData, onDismiss }) => {
   )
 }
 
+// Toast Provider
+const Toast = ToastProvider
+
 export { ToastItem }
+export default Toast
