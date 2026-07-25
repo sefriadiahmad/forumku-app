@@ -20,6 +20,7 @@ import {
 import { selectUser, selectIsAuthenticated } from '../features/auth/authSlice'
 import { Avatar, CategoryBadge, VoteGroup, Button, Spinner } from '../components/ui'
 import { useRelativeTime } from '../hooks'
+import { CommentSection } from '../features/comments/components'
 
 const ThreadDetailPage = () => {
   const { id } = useParams()
@@ -222,23 +223,9 @@ const ThreadDetailPage = () => {
         </div>
       </article>
 
-      {/* Comments Section Placeholder */}
+      {/* Comments Section */}
       <section className="mt-8">
-        <h2 className="text-xl font-semibold text-text-primary mb-4">
-          Komentar
-        </h2>
-        <div className="bg-surface border border-border rounded-xl p-6 text-center">
-          <p className="text-text-secondary">
-            {isAuthenticated
-              ? 'Fitur komentar sedang dalam pengembangan'
-              : 'Login untuk memberikan komentar'}
-          </p>
-          {!isAuthenticated && (
-            <Link to="/login" className="mt-4 inline-block">
-              <Button>Login</Button>
-            </Link>
-          )}
-        </div>
+        <CommentSection threadId={id} />
       </section>
     </div>
   )

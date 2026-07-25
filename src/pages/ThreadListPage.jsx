@@ -1,7 +1,7 @@
 // Thread List Page (Home) - Display all threads
 // ForumKu Thread Feature
-import { useState } from 'react'
-import { useSelector } from 'react-redux'
+import { useState, useEffect } from 'react'
+import { useSelector, useDispatch } from 'react-redux'
 import { Link } from 'react-router-dom'
 import { Plus, Search, X } from 'lucide-react'
 
@@ -12,9 +12,9 @@ import { Button, Input } from '../components/ui'
 import { useDebounce } from '../hooks'
 
 const ThreadListPage = () => {
+  const dispatch = useDispatch()
   const isAuthenticated = useSelector(selectIsAuthenticated)
   const filter = useSelector(selectFilter)
-  const dispatch = useDispatch()
 
   const [searchInput, setSearchInput] = useState(filter.search || '')
   const debouncedSearch = useDebounce(searchInput, 500)
@@ -66,7 +66,7 @@ const ThreadListPage = () => {
             onChange={(e) => setSearchInput(e.target.value)}
             leftIcon={<Search className="w-5 h-5" />}
             rightIcon={
-              searchInput && (
+              searchInput ? (
                 <button
                   type="button"
                   onClick={clearSearch}
@@ -74,7 +74,7 @@ const ThreadListPage = () => {
                 >
                   <X className="w-5 h-5" />
                 </button>
-              )
+              ) : null
             }
           />
         </div>
@@ -97,9 +97,5 @@ const ThreadListPage = () => {
     </div>
   )
 }
-
-// Import useDispatch
-import { useDispatch } from 'react-redux'
-import { useEffect } from 'react'
 
 export default ThreadListPage

@@ -7,14 +7,13 @@ import { clsx } from 'clsx'
 
 import { Avatar, Button, VoteGroup, DropdownMenu, DropdownMenuItem, Textarea } from '../../../components/ui'
 import { useRelativeTime } from '../../../hooks'
+import { selectUser, selectIsAuthenticated } from '../../auth/authSlice'
 import {
   updateCommentAsync,
   deleteCommentAsync,
   optimisticVote,
   rollbackVote,
-  selectUser,
-  selectIsAuthenticated,
-} from '../../auth/authSlice'
+} from '../commentsSlice'
 import {
   upvoteCommentAsync as upvoteCommentThunk,
   downvoteCommentAsync as downvoteCommentThunk,
