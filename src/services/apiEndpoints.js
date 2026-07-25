@@ -1,7 +1,7 @@
 // API Endpoints - All endpoint constants for ForumKu API
 // URL builder functions for dynamic endpoints
 
-const BASE_PATH = '/api'
+const BASE_PATH = '/'
 
 export const endpoints = {
   // ==================== AUTH ENDPOINTS ====================

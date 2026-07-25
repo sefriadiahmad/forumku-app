@@ -5,8 +5,8 @@ import { getAuthToken, removeAuthToken } from '../utils/storageUtils'
 
 // ==================== CONFIGURATION ====================
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'https://api.forumku.example.com'
-const REQUEST_TIMEOUT = import.meta.env.VITE_API_TIMEOUT || 30000 // 30 seconds
+const API_BASE_URL = import.meta.env.VITE_API_URL
+const REQUEST_TIMEOUT = import.meta.env.VITE_API_TIMEOUT
 
 // ==================== ERROR CLASSES ====================
 
