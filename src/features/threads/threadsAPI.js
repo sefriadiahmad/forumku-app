@@ -1,84 +1,112 @@
-// Threads API - Threads API calls
+// Threads API - Threads API calls for Dicoding Forum API
 // ForumKu Feature API
 import { api } from '../../services/api'
 import { endpoints } from '../../services/apiEndpoints'
 
-// ==================== TYPES ====================
+// ==================== HELPER FUNCTIONS ====================
 
 /**
- * @typedef {Object} Thread
- * @property {string} id - Thread ID
- * @property {string} title - Thread title
- * @property {string} body - Thread body content
- * @property {string} category - Thread category
- * @property {Object} author - Thread author
- * @property {number} upvotes - Number of upvotes
- * @property {number} downvotes - Number of downvotes
- * @property {number} commentsCount - Number of comments
- * @property {string} createdAt - Creation date
- * @property {string} updatedAt - Last update date
+ * Normalize thread data from Dicoding API
+ * Converts owner/user to author format and vote arrays to counts
  */
+const normalizeThread = (thread) => {
+  if (!thread) return null
+
+  return {
+    id: thread.id,
+    title: thread.title,
+    body: thread.body,
+    category: thread.category,
+    createdAt: thread.createdAt,
+    updatedAt: thread.updatedAt,
+    // Handle owner/user (Dicoding uses 'owner' or 'ownerId')
+    author: thread.owner || {
+      id: thread.ownerId,
+      name: thread.ownerName,
+      avatar: thread.ownerAvatar,
+    },
+    ownerId: thread.ownerId,
+    // Convert vote arrays to counts
+    upvotes: thread.upVotesBy?.length || 0,
+    downvotes: thread.downVotesBy?.length || 0,
+    upVotesBy: thread.upVotesBy || [],
+    downVotesBy: thread.downVotesBy || [],
+    totalComments: thread.totalComments || 0,
+    comments: thread.comments || [],
+  }
+}
 
 /**
- * @typedef {Object} ThreadListResponse
- * @property {Thread[]} threads - List of threads
- * @property {number} total - Total number of threads
- * @property {number} page - Current page
- * @property {number} size - Page size
+ * Normalize comment data from Dicoding API
  */
+const normalizeComment = (comment) => {
+  if (!comment) return null
+
+  return {
+    id: comment.id,
+    content: comment.content,
+    createdAt: comment.createdAt,
+    // Handle owner
+    author: comment.owner || {
+      id: comment.ownerId,
+      name: comment.ownerName,
+      avatar: comment.ownerAvatar,
+    },
+    ownerId: comment.ownerId,
+    // Convert vote arrays to counts
+    upvotes: comment.upVotesBy?.length || 0,
+    downvotes: comment.downVotesBy?.length || 0,
+    upVotesBy: comment.upVotesBy || [],
+    downVotesBy: comment.downVotesBy || [],
+  }
+}
 
 // ==================== THREADS API ====================
 
 /**
  * Get all threads
- * @param {Object} params - Query parameters
- * @param {string} [params.category] - Filter by category
- * @param {string} [params.search] - Search in title/body
- * @param {number} [params.page] - Page number (1-indexed)
- * @param {number} [params.size] - Page size
- * @returns {Promise<ThreadListResponse>} Thread list response
+ * GET /threads
  */
 export const getThreads = async (params = {}) => {
-  const { category, search, page = 1, size = 10 } = params
+  const response = await api.get(endpoints.THREADS.LIST, params)
 
-  const queryParams = { page, size }
+  // Dicoding API returns: { status, message, data: { threads } }
+  const threads = response.data?.threads || response.threads || response || []
 
-  if (category && category !== 'all') {
-    queryParams.category = category
-  }
-
-  if (search) {
-    queryParams.search = search
-  }
-
-  const response = await api.get(endpoints.THREADS.LIST, queryParams)
-
-  // Handle different response formats
   return {
-    threads: response.data || response.threads || response,
-    total: response.total || response.count || 0,
-    page: response.page || page,
-    size: response.size || size,
+    threads: threads.map(normalizeThread),
+    total: threads.length,
+    page: params.page || 1,
+    size: params.size || 20,
   }
 }
 
 /**
  * Get single thread by ID
- * @param {string} threadId - Thread ID
- * @returns {Promise<Thread>} Thread data
+ * GET /threads/:id
  */
 export const getThreadById = async (threadId) => {
   const response = await api.get(endpoints.THREADS.DETAIL(threadId))
-  return response.data || response
+
+  // Dicoding API returns: { status, message, data: { detailThread } }
+  const thread = response.data?.detailThread || response.detailThread || response
+
+  if (!thread) return null
+
+  // Normalize thread
+  const normalizedThread = normalizeThread(thread)
+
+  // Normalize comments if present
+  if (thread.comments) {
+    normalizedThread.comments = thread.comments.map(normalizeComment)
+  }
+
+  return normalizedThread
 }
 
 /**
  * Create new thread
- * @param {Object} data - Thread data
- * @param {string} data.title - Thread title
- * @param {string} data.body - Thread body content
- * @param {string} [data.category] - Thread category
- * @returns {Promise<Thread>} Created thread
+ * POST /threads
  */
 export const createThread = async ({ title, body, category }) => {
   const response = await api.post(endpoints.THREADS.CREATE, {
@@ -86,14 +114,15 @@ export const createThread = async ({ title, body, category }) => {
     body,
     ...(category && { category }),
   })
-  return response.data || response
+
+  // Dicoding API returns: { status, message, data: { thread } }
+  const thread = response.data?.thread || response.thread || response
+  return normalizeThread(thread)
 }
 
 /**
  * Update thread
- * @param {string} threadId - Thread ID
- * @param {Object} data - Thread data to update
- * @returns {Promise<Thread>} Updated thread
+ * PATCH /threads/:id
  */
 export const updateThread = async (threadId, { title, body, category }) => {
   const response = await api.patch(endpoints.THREADS.DETAIL(threadId), {
@@ -101,13 +130,14 @@ export const updateThread = async (threadId, { title, body, category }) => {
     ...(body && { body }),
     ...(category && { category }),
   })
-  return response.data || response
+
+  const thread = response.data?.thread || response.thread || response
+  return normalizeThread(thread)
 }
 
 /**
  * Delete thread
- * @param {string} threadId - Thread ID
- * @returns {Promise<void>}
+ * DELETE /threads/:id
  */
 export const deleteThread = async (threadId) => {
   await api.del(endpoints.THREADS.DETAIL(threadId))
@@ -117,18 +147,18 @@ export const deleteThread = async (threadId) => {
 
 /**
  * Upvote a thread
- * @param {string} threadId - Thread ID
- * @returns {Promise<Object>} Vote result
+ * POST /threads/:id/up-vote
  */
 export const upvoteThread = async (threadId) => {
   const response = await api.post(endpoints.THREADS.UP_VOTE(threadId))
+
+  // Dicoding API returns: { status, message, data: { vote } }
   return response.data || response
 }
 
 /**
  * Downvote a thread
- * @param {string} threadId - Thread ID
- * @returns {Promise<Object>} Vote result
+ * POST /threads/:id/down-vote
  */
 export const downvoteThread = async (threadId) => {
   const response = await api.post(endpoints.THREADS.DOWN_VOTE(threadId))
@@ -137,8 +167,7 @@ export const downvoteThread = async (threadId) => {
 
 /**
  * Neutralize (remove) vote from a thread
- * @param {string} threadId - Thread ID
- * @returns {Promise<Object>} Vote result
+ * POST /threads/:id/neutral-vote
  */
 export const neutralizeThreadVote = async (threadId) => {
   const response = await api.post(endpoints.THREADS.NEUTRAL_VOTE(threadId))
@@ -147,18 +176,12 @@ export const neutralizeThreadVote = async (threadId) => {
 
 // ==================== API OBJECT ====================
 
-/**
- * Threads API object with all methods
- */
 export const threadsAPI = {
-  // Thread CRUD
   getThreads,
   getThreadById,
   createThread,
   updateThread,
   deleteThread,
-
-  // Voting
   upvoteThread,
   downvoteThread,
   neutralizeThreadVote,

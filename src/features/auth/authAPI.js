@@ -1,34 +1,17 @@
-// Auth API - Authentication API calls
+// Auth API - Authentication API calls for Dicoding Forum API
 // ForumKu Feature API
 import { api } from '../../services/api'
 import { endpoints } from '../../services/apiEndpoints'
-
-// ==================== TYPES ====================
-
-/**
- * @typedef {Object} User
- * @property {string} id - User ID
- * @property {string} name - User name
- * @property {string} email - User email
- * @property {string} [avatar] - User avatar URL
- * @property {string} [role] - User role
- * @property {string} [createdAt] - Account creation date
- */
-
-/**
- * @typedef {Object} AuthResponse
- * @property {string} token - Access token
- * @property {User} user - User data
- */
 
 // ==================== AUTH API ====================
 
 /**
  * Register new user
+ * POST /register
  * @param {string} name - User's name
  * @param {string} email - User's email
- * @param {string} password - User's password
- * @returns {Promise<AuthResponse>} Auth response with token and user
+ * @param {string} password - User's password (min 6 characters)
+ * @returns {Promise<{user: User}>} User data
  */
 export const register = async (name, email, password) => {
   const response = await api.post(endpoints.AUTH.REGISTER, {
@@ -37,17 +20,16 @@ export const register = async (name, email, password) => {
     password,
   })
 
-  return {
-    token: response.data?.token || response.token,
-    user: response.data?.user || response.user || response,
-  }
+  // Dicoding API returns: { status, message, data: { user } }
+  return response.data?.data?.user || response.data?.user || response
 }
 
 /**
  * Login user
+ * POST /login
  * @param {string} email - User's email
  * @param {string} password - User's password
- * @returns {Promise<AuthResponse>} Auth response with token and user
+ * @returns {Promise<{token: string}>} Token
  */
 export const login = async (email, password) => {
   const response = await api.post(endpoints.AUTH.LOGIN, {
@@ -55,22 +37,18 @@ export const login = async (email, password) => {
     password,
   })
 
-  return {
-    token: response.data?.token || response.token,
-    user: response.data?.user || response.user || response,
-  }
+  // Dicoding API returns: { status, message, data: { token } }
+  return response.data?.data || response
 }
 
 /**
- * Logout user (client-side)
- * Note: Some APIs require server-side token invalidation
+ * Logout user (client-side only)
  */
 export const logout = async () => {
   try {
     await api.post(endpoints.AUTH.LOGOUT)
   } catch {
     // Ignore logout errors - we still clear local state
-    // This is intentional for better UX
   }
 }
 
@@ -78,15 +56,31 @@ export const logout = async () => {
 
 /**
  * Get current user profile
- * @returns {Promise<User>} User profile data
+ * GET /users/me
+ * @returns {Promise<{user: User}>} User profile
  */
 export const getProfile = async () => {
   const response = await api.get(endpoints.USERS.PROFILE)
-  return response.data || response
+
+  // Dicoding API returns: { status, message, data: { user } }
+  return response.data?.data?.user || response.data?.user || response
+}
+
+/**
+ * Get all users
+ * GET /users
+ * @returns {Promise<{users: User[]}>} List of users
+ */
+export const getUsers = async () => {
+  const response = await api.get(endpoints.USERS.LIST)
+
+  // Dicoding API returns: { status, message, data: { users } }
+  return response.data?.data?.users || response.data?.users || []
 }
 
 /**
  * Update user profile
+ * PATCH /users/me
  * @param {Object} data - Profile data to update
  * @param {string} [data.name] - User's name
  * @param {string} [data.avatar] - User's avatar URL
@@ -94,22 +88,17 @@ export const getProfile = async () => {
  */
 export const updateProfile = async (data) => {
   const response = await api.patch(endpoints.USERS.UPDATE_PROFILE, data)
-  return response.data || response
+  return response.data?.data?.user || response.data?.user || response
 }
 
 // ==================== API OBJECT ====================
 
-/**
- * Auth API object with all methods
- */
 export const authAPI = {
-  // Auth methods
   register,
   login,
   logout,
-
-  // User methods
   getProfile,
+  getUsers,
   updateProfile,
 }
 

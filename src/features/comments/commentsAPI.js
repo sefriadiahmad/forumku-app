@@ -1,72 +1,77 @@
-// Comments API - Comments API calls
+// Comments API - Comments API calls for Dicoding Forum API
 // ForumKu Feature API
 import { api } from '../../services/api'
 import { endpoints } from '../../services/apiEndpoints'
 
-// ==================== TYPES ====================
+// ==================== HELPER FUNCTIONS ====================
 
 /**
- * @typedef {Object} Comment
- * @property {string} id - Comment ID
- * @property {string} content - Comment content
- * @property {Object} author - Comment author
- * @property {string} threadId - Thread ID
- * @property {string} parentId - Parent comment ID (for replies)
- * @property {number} upvotes - Number of upvotes
- * @property {number} downvotes - Number of downvotes
- * @property {number} repliesCount - Number of replies
- * @property {string} createdAt - Creation date
- * @property {string} updatedAt - Last update date
+ * Normalize comment data from Dicoding API
  */
+const normalizeComment = (comment) => {
+  if (!comment) return null
 
-/**
- * @typedef {Object} CommentListResponse
- * @property {Comment[]} comments - List of comments
- * @property {number} total - Total number of comments
- */
+  return {
+    id: comment.id,
+    content: comment.content,
+    createdAt: comment.createdAt,
+    // Handle owner
+    author: comment.owner || {
+      id: comment.ownerId,
+      name: comment.ownerName,
+      avatar: comment.ownerAvatar,
+    },
+    ownerId: comment.ownerId,
+    // Convert vote arrays to counts
+    upvotes: comment.upVotesBy?.length || 0,
+    downvotes: comment.downVotesBy?.length || 0,
+    upVotesBy: comment.upVotesBy || [],
+    downVotesBy: comment.downVotesBy || [],
+  }
+}
 
 // ==================== COMMENTS API ====================
 
 /**
  * Get all comments for a thread
- * @param {string} threadId - Thread ID
- * @param {Object} params - Query parameters
- * @param {number} [params.page] - Page number
- * @param {number} [params.size] - Page size
- * @returns {Promise<CommentListResponse>} Comment list response
+ * Note: Dicoding API returns comments within thread detail
+ * GET /threads/:id (with comments included)
  */
 export const getComments = async (threadId, params = {}) => {
   const { page = 1, size = 20 } = params
 
-  const response = await api.get(endpoints.COMMENTS.LIST(threadId), { page, size })
+  // Dicoding API includes comments in thread detail
+  const response = await api.get(endpoints.THREADS.DETAIL(threadId), { page, size })
 
-  // Handle different response formats
+  // Extract comments from thread detail response
+  const thread = response.data?.detailThread || response.detailThread || response
+  const comments = thread?.comments || []
+
   return {
-    comments: response.data || response.comments || response,
-    total: response.total || response.count || 0,
-    page: response.page || page,
-    size: response.size || size,
+    comments: comments.map(normalizeComment),
+    total: comments.length,
+    page,
+    size,
   }
 }
 
 /**
  * Get single comment by ID
- * @param {string} threadId - Thread ID
- * @param {string} commentId - Comment ID
- * @returns {Promise<Comment>} Comment data
+ * Note: Dicoding doesn't have single comment endpoint
+ * Comments are nested within thread
  */
 export const getCommentById = async (threadId, commentId) => {
-  const response = await api.get(endpoints.COMMENTS.DETAIL(threadId, commentId))
-  return response.data || response
+  const response = await api.get(endpoints.THREADS.DETAIL(threadId))
+
+  const thread = response.data?.detailThread || response.detailThread || response
+  const comment = thread?.comments?.find((c) => c.id === commentId)
+
+  return normalizeComment(comment)
 }
 
 /**
  * Create new comment
- * @param {string} threadId - Thread ID
- * @param {Object} data - Comment data
- * @param {string} data.content - Comment content
- * @param {string} [data.parentId] - Parent comment ID (for replies)
- * @returns {Promise<Comment>} Created comment
+ * POST /threads/:id/comments
  */
 export const createComment = async (threadId, { content, parentId }) => {
   const payload = { content }
@@ -75,28 +80,31 @@ export const createComment = async (threadId, { content, parentId }) => {
   }
 
   const response = await api.post(endpoints.COMMENTS.CREATE(threadId), payload)
-  return response.data || response
+
+  // Dicoding API returns: { status, message, data: { comment } }
+  const comment = response.data?.comment || response.comment || response
+  return normalizeComment(comment)
 }
 
 /**
  * Update comment
- * @param {string} threadId - Thread ID
- * @param {string} commentId - Comment ID
- * @param {Object} data - Comment data to update
- * @returns {Promise<Comment>} Updated comment
+ * Note: Dicoding API may not support comment update
+ * PATCH /threads/:id/comments/:id
  */
 export const updateComment = async (threadId, commentId, { content }) => {
-  const response = await api.patch(endpoints.COMMENTS.DETAIL(threadId, commentId), {
-    content,
-  })
-  return response.data || response
+  const response = await api.patch(
+    endpoints.COMMENTS.DETAIL(threadId, commentId),
+    { content }
+  )
+
+  const comment = response.data?.comment || response.comment || response
+  return normalizeComment(comment)
 }
 
 /**
  * Delete comment
- * @param {string} threadId - Thread ID
- * @param {string} commentId - Comment ID
- * @returns {Promise<void>}
+ * Note: Dicoding API may not support comment delete
+ * DELETE /threads/:id/comments/:id
  */
 export const deleteComment = async (threadId, commentId) => {
   await api.del(endpoints.COMMENTS.DETAIL(threadId, commentId))
@@ -106,20 +114,17 @@ export const deleteComment = async (threadId, commentId) => {
 
 /**
  * Upvote a comment
- * @param {string} threadId - Thread ID
- * @param {string} commentId - Comment ID
- * @returns {Promise<Object>} Vote result
+ * POST /threads/:id/comments/:id/up-vote
  */
 export const upvoteComment = async (threadId, commentId) => {
   const response = await api.post(endpoints.COMMENTS.UP_VOTE(threadId, commentId))
+  // Dicoding API returns: { status, message, data: { vote } }
   return response.data || response
 }
 
 /**
  * Downvote a comment
- * @param {string} threadId - Thread ID
- * @param {string} commentId - Comment ID
- * @returns {Promise<Object>} Vote result
+ * POST /threads/:id/comments/:id/down-vote
  */
 export const downvoteComment = async (threadId, commentId) => {
   const response = await api.post(endpoints.COMMENTS.DOWN_VOTE(threadId, commentId))
@@ -128,9 +133,7 @@ export const downvoteComment = async (threadId, commentId) => {
 
 /**
  * Neutralize (remove) vote from a comment
- * @param {string} threadId - Thread ID
- * @param {string} commentId - Comment ID
- * @returns {Promise<Object>} Vote result
+ * POST /threads/:id/comments/:id/neutral-vote
  */
 export const neutralizeCommentVote = async (threadId, commentId) => {
   const response = await api.post(
@@ -141,18 +144,12 @@ export const neutralizeCommentVote = async (threadId, commentId) => {
 
 // ==================== API OBJECT ====================
 
-/**
- * Comments API object with all methods
- */
 export const commentsAPI = {
-  // Comment CRUD
   getComments,
   getCommentById,
   createComment,
   updateComment,
   deleteComment,
-
-  // Voting
   upvoteComment,
   downvoteComment,
   neutralizeCommentVote,

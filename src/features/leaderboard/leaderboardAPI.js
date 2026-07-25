@@ -1,72 +1,86 @@
-// Leaderboard API - Leaderboard API calls for ForumKu
-// API service layer for leaderboard operations
+// Leaderboard API - Leaderboard API calls for Dicoding Forum API
+// ForumKu Feature API
 import { api } from '../../services/api'
 import { endpoints } from '../../services/apiEndpoints'
+
+// ==================== HELPER FUNCTIONS ====================
+
+/**
+ * Normalize leaderboard entry from Dicoding API
+ */
+const normalizeLeaderboardEntry = (entry) => {
+  if (!entry) return null
+
+  return {
+    user: entry.user || {
+      id: entry.userId,
+      name: entry.userName,
+      avatar: entry.userAvatar,
+    },
+    score: entry.score || 0,
+    // Add rank based on position (to be set by caller)
+    rank: entry.rank,
+  }
+}
 
 // ==================== LEADERBOARD API ====================
 
 /**
  * Get leaderboard data
- * @param {Object} params - Query parameters
- * @param {number} params.page - Page number (1-indexed)
- * @param {number} params.size - Page size
- * @param {string} params.period - Time period: 'daily', 'weekly', 'monthly', 'all'
- * @param {string} params.category - Filter by category (optional)
- * @returns {Promise<Object>} Leaderboard response with users and rankings
+ * GET /leaderboards
+ * @returns {Promise<{leaderboard: Array, users: Array}>} Leaderboard response
  */
 export const getLeaderboard = async (params = {}) => {
-  const { page = 1, size = 20, period = 'all', category = null } = params
+  const { page = 1, size = 20 } = params
 
-  const queryParams = {
-    page,
-    size,
-    period,
-    ...(category && { category }),
-  }
+  const response = await api.get(endpoints.LEADERBOARD.LIST, { page, size })
 
-  const response = await api.get(endpoints.LEADERBOARD.LIST, queryParams)
+  // Dicoding API returns: { status, message, data: { leaderboards } }
+  const leaderboards = response.data?.leaderboards || response.leaderboards || []
 
-  // Normalize response - API may return in different formats
+  // Normalize each entry
+  const normalizedLeaderboard = leaderboards.map((entry, index) => ({
+    ...normalizeLeaderboardEntry(entry),
+    rank: entry.rank || index + 1 + (page - 1) * size,
+  }))
+
   return {
-    leaderboard: response.data?.leaderboard ||
-                 response.data?.users ||
-                 response.leaderboard ||
-                 response.users ||
-                 response ||
-                 [],
-    users: response.data?.users ||
-           response.users ||
-           [],
+    leaderboard: normalizedLeaderboard,
+    users: normalizedLeaderboard,
     pagination: {
-      page: response.data?.pagination?.page ||
-            response.pagination?.page ||
-            page,
-      size: response.data?.pagination?.size ||
-            response.pagination?.size ||
-            size,
-      total: response.data?.pagination?.total ||
-             response.pagination?.total ||
-             0,
-      hasMore: response.data?.pagination?.hasMore ||
-               response.pagination?.hasMore ||
-               false,
+      page,
+      size,
+      total: leaderboards.length,
+      hasMore: leaderboards.length === size,
     },
-    period: response.data?.period || period,
   }
 }
 
 /**
  * Get user rank
- * @param {string} userId - User ID
- * @returns {Promise<Object>} User rank information
+ * Note: Dicoding doesn't have single user rank endpoint
+ * GET /leaderboards
  */
 export const getUserRank = async (userId) => {
-  const response = await api.get(`${endpoints.LEADERBOARD.LIST}/users/${userId}`)
+  const response = await api.get(endpoints.LEADERBOARD.LIST)
+
+  const leaderboards = response.data?.leaderboards || response.leaderboards || []
+  const userEntry = leaderboards.find((entry) => entry.user?.id === userId)
+
+  if (userEntry) {
+    const index = leaderboards.indexOf(userEntry)
+    return {
+      rank: index + 1,
+      score: userEntry.score || 0,
+      totalUsers: leaderboards.length,
+      percentile: Math.round(((index + 1) / leaderboards.length) * 100),
+    }
+  }
 
   return {
-    rank: response.data?.rank || response.rank,
-    score: response.data?.score || response.score,
-    totalUsers: response.data?.totalUsers || response.totalUsers,
-    percentile: response.data?.percentile || response.percentile,
+    rank: null,
+    score: 0,
+    totalUsers: leaderboards.length,
+    percentile: null,
   }
 }

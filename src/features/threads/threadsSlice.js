@@ -1,6 +1,6 @@
 // Threads Slice - Threads Redux slice
 // ForumKu Feature Slice
-import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
+import { createSlice, createAsyncThunk, createSelector } from '@reduxjs/toolkit'
 import { threadsAPI } from './threadsAPI'
 
 // ==================== INITIAL STATE ====================
@@ -445,12 +445,15 @@ export const selectFilteredThreads = (state) => {
 }
 
 /**
- * Select unique categories from threads
+ * Select unique categories from threads (memoized)
  */
-export const selectCategories = (state) => {
-  const categories = state.threads.threads.map((t) => t.category).filter(Boolean)
-  return [...new Set(categories)]
-}
+export const selectCategories = createSelector(
+  [(state) => state.threads.threads],
+  (threads) => {
+    const categories = threads.map((t) => t.category).filter(Boolean)
+    return [...new Set(categories)]
+  }
+)
 
 /**
  * Select thread by ID

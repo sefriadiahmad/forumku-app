@@ -10,6 +10,7 @@ const Button = forwardRef(({
   size = 'md',
   disabled = false,
   loading = false,
+  isLoading = false, // Support both prop names
   type = 'button',
   className,
   leftIcon,
@@ -17,6 +18,8 @@ const Button = forwardRef(({
   fullWidth = false,
   ...props
 }, ref) => {
+  // Support both isLoading and loading props
+  const isLoadingState = isLoading || loading
   // Variant styles
   const variants = {
     primary: clsx(
@@ -88,7 +91,7 @@ const Button = forwardRef(({
     <button
       ref={ref}
       type={type}
-      disabled={disabled || loading}
+      disabled={disabled || isLoadingState}
       className={clsx(
         'inline-flex items-center justify-center',
         'font-semibold transition-all duration-200 ease-out',
@@ -102,7 +105,7 @@ const Button = forwardRef(({
       {...props}
     >
       {/* Loading Spinner */}
-      {loading ? (
+      {isLoadingState ? (
         <Loader2 className={clsx(spinnerSizes[size], 'animate-spin')} />
       ) : (
         <>

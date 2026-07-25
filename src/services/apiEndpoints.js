@@ -1,49 +1,51 @@
-// API Endpoints - All endpoint constants for ForumKu API
+// API Endpoints - All endpoint constants for ForumKu API (Dicoding Forum API)
 // URL builder functions for dynamic endpoints
 
-const BASE_PATH = '/'
+// Base URL for Dicoding Forum API
+const BASE_URL = 'https://forum-api.dicoding.dev/v1'
 
 export const endpoints = {
   // ==================== AUTH ENDPOINTS ====================
   AUTH: {
-    LOGIN: `${BASE_PATH}/auth/login`,
-    REGISTER: `${BASE_PATH}/auth/register`,
-    LOGOUT: `${BASE_PATH}/auth/logout`,
+    LOGIN: `${BASE_URL}/login`,
+    REGISTER: `${BASE_URL}/register`,
+    LOGOUT: `${BASE_URL}/logout`,
   },
 
   // ==================== USER ENDPOINTS ====================
   USERS: {
-    PROFILE: `${BASE_PATH}/users/me`,
-    UPDATE_PROFILE: `${BASE_PATH}/users/me`,
+    LIST: `${BASE_URL}/users`,
+    PROFILE: `${BASE_URL}/users/me`,
+    UPDATE_PROFILE: `${BASE_URL}/users/me`,
   },
 
   // ==================== THREAD ENDPOINTS ====================
   THREADS: {
-    LIST: `${BASE_PATH}/threads`,
-    DETAIL: (id) => `${BASE_PATH}/threads/${id}`,
-    CREATE: `${BASE_PATH}/threads`,
-    UP_VOTE: (id) => `${BASE_PATH}/threads/${id}/up-vote`,
-    DOWN_VOTE: (id) => `${BASE_PATH}/threads/${id}/down-vote`,
-    NEUTRAL_VOTE: (id) => `${BASE_PATH}/threads/${id}/neutral-vote`,
+    LIST: `${BASE_URL}/threads`,
+    DETAIL: (id) => `${BASE_URL}/threads/${id}`,
+    CREATE: `${BASE_URL}/threads`,
+    UP_VOTE: (id) => `${BASE_URL}/threads/${id}/up-vote`,
+    DOWN_VOTE: (id) => `${BASE_URL}/threads/${id}/down-vote`,
+    NEUTRAL_VOTE: (id) => `${BASE_URL}/threads/${id}/neutral-vote`,
   },
 
   // ==================== COMMENT ENDPOINTS ====================
   COMMENTS: {
-    LIST: (threadId) => `${BASE_PATH}/threads/${threadId}/comments`,
-    CREATE: (threadId) => `${BASE_PATH}/threads/${threadId}/comments`,
+    LIST: (threadId) => `${BASE_URL}/threads/${threadId}/comments`,
+    CREATE: (threadId) => `${BASE_URL}/threads/${threadId}/comments`,
     DETAIL: (threadId, commentId) =>
-      `${BASE_PATH}/threads/${threadId}/comments/${commentId}`,
+      `${BASE_URL}/threads/${threadId}/comments/${commentId}`,
     UP_VOTE: (threadId, commentId) =>
-      `${BASE_PATH}/threads/${threadId}/comments/${commentId}/up-vote`,
+      `${BASE_URL}/threads/${threadId}/comments/${commentId}/up-vote`,
     DOWN_VOTE: (threadId, commentId) =>
-      `${BASE_PATH}/threads/${threadId}/comments/${commentId}/down-vote`,
+      `${BASE_URL}/threads/${threadId}/comments/${commentId}/down-vote`,
     NEUTRAL_VOTE: (threadId, commentId) =>
-      `${BASE_PATH}/threads/${threadId}/comments/${commentId}/neutral-vote`,
+      `${BASE_URL}/threads/${threadId}/comments/${commentId}/neutral-vote`,
   },
 
   // ==================== LEADERBOARD ENDPOINTS ====================
   LEADERBOARD: {
-    LIST: `${BASE_PATH}/leaderboards`,
+    LIST: `${BASE_URL}/leaderboards`,
   },
 }
 
