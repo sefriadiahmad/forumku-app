@@ -1,57 +1,152 @@
-// Create Thread Page - placeholder
+// Create Thread Page - Create new thread
+// ForumKu Thread Feature
+import { useState } from 'react'
+import { useNavigate, Link } from 'react-router-dom'
+import { useDispatch, useSelector } from 'react-redux'
+import { ArrowLeft } from 'lucide-react'
+
+import { createThreadAsync, selectThreadsLoading } from '../features/threads/threadsSlice'
+import { Button, Input, Textarea } from '../components/ui'
+import { CategoryDropdown, DEFAULT_CATEGORIES } from '../features/threads/components'
+import { useToast } from '../components/ui/Toast'
+
 const CreateThreadPage = () => {
+  const dispatch = useDispatch()
+  const navigate = useNavigate()
+  const { toast } = useToast()
+  const loading = useSelector(selectThreadsLoading)
+
+  const [formData, setFormData] = useState({
+    title: '',
+    body: '',
+    category: 'general',
+  })
+  const [errors, setErrors] = useState({})
+
+  const handleChange = (field) => (e) => {
+    setFormData((prev) => ({
+      ...prev,
+      [field]: e.target.value,
+    }))
+
+    // Clear error when user types
+    if (errors[field]) {
+      setErrors((prev) => ({
+        ...prev,
+        [field]: '',
+      }))
+    }
+  }
+
+  const validate = () => {
+    const newErrors = {}
+
+    if (!formData.title.trim()) {
+      newErrors.title = 'Judul tidak boleh kosong'
+    } else if (formData.title.length < 5) {
+      newErrors.title = 'Judul minimal 5 karakter'
+    } else if (formData.title.length > 200) {
+      newErrors.title = 'Judul maksimal 200 karakter'
+    }
+
+    if (!formData.body.trim()) {
+      newErrors.body = 'Konten tidak boleh kosong'
+    } else if (formData.body.length < 10) {
+      newErrors.body = 'Konten minimal 10 karakter'
+    }
+
+    setErrors(newErrors)
+    return Object.keys(newErrors).length === 0
+  }
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+
+    if (!validate()) {
+      return
+    }
+
+    try {
+      const result = await dispatch(createThreadAsync(formData)).unwrap()
+      toast.success('Thread berhasil dibuat!')
+      navigate(`/thread/${result.id}`)
+    } catch (err) {
+      toast.error(err.message || 'Gagal membuat thread')
+    }
+  }
+
   return (
     <div className="animate-fade-in max-w-2xl mx-auto">
-      <h1 className="text-3xl font-bold text-text-primary mb-6">Create New Thread</h1>
+      {/* Back Button */}
+      <Link
+        to="/"
+        className="inline-flex items-center gap-2 text-primary hover:underline mb-6"
+      >
+        <ArrowLeft className="w-4 h-4" />
+        Kembali
+      </Link>
 
-      {/* TODO: Thread form */}
-      <form className="space-y-4">
-        <div>
-          <label className="block text-sm font-medium text-text-primary mb-2">
-            Title
+      {/* Header */}
+      <div className="mb-6">
+        <h1 className="text-3xl font-bold text-text-primary mb-2">
+          Buat Thread Baru
+        </h1>
+        <p className="text-text-secondary">
+          Bagikan ide, pertanyaan, atau topik diskusi dengan komunitas
+        </p>
+      </div>
+
+      {/* Form */}
+      <form onSubmit={handleSubmit} className="space-y-6">
+        {/* Title */}
+        <Input
+          label="Judul"
+          placeholder="Judul thread Anda"
+          value={formData.title}
+          onChange={handleChange('title')}
+          error={errors.title}
+          required
+          helperText={`${formData.title.length}/200 karakter`}
+        />
+
+        {/* Category */}
+        <div className="space-y-2">
+          <label className="block text-sm font-medium text-text-primary">
+            Kategori
           </label>
-          <input
-            type="text"
-            className="w-full px-4 py-3 border-2 border-border rounded-md focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all"
-            placeholder="Enter thread title"
-          />
+          <CategoryDropdown categories={DEFAULT_CATEGORIES.slice(1)} />
+          <p className="text-sm text-text-tertiary">
+            Pilih kategori yang sesuai dengan thread Anda
+          </p>
         </div>
 
-        <div>
-          <label className="block text-sm font-medium text-text-primary mb-2">
-            Category
-          </label>
-          <select className="w-full px-4 py-3 border-2 border-border rounded-md focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all">
-            <option value="">Select category</option>
-            <option value="general">General</option>
-            <option value="tech">Technology</option>
-          </select>
-        </div>
+        {/* Body */}
+        <Textarea
+          label="Konten"
+          placeholder="Tulis konten thread Anda di sini..."
+          value={formData.body}
+          onChange={handleChange('body')}
+          error={errors.body}
+          rows={8}
+          required
+          showCount
+          maxLength={10000}
+        />
 
-        <div>
-          <label className="block text-sm font-medium text-text-primary mb-2">
-            Content
-          </label>
-          <textarea
-            rows="6"
-            className="w-full px-4 py-3 border-2 border-border rounded-md focus:border-primary focus:ring-2 focus:ring-primary/20 outline-none transition-all resize-y min-h-[120px]"
-            placeholder="Write your thread content..."
-          />
-        </div>
-
-        <div className="flex gap-4 pt-4">
-          <button
+        {/* Actions */}
+        <div className="flex items-center gap-4 pt-4">
+          <Button
             type="submit"
-            className="px-6 py-3 bg-primary text-white font-semibold rounded-md hover:bg-primary-dark transition-all"
+            loading={loading}
+            disabled={loading}
           >
-            Create Thread
-          </button>
-          <button
-            type="button"
-            className="px-6 py-3 bg-transparent text-text-secondary font-medium rounded-md hover:bg-surface transition-all"
-          >
-            Cancel
-          </button>
+            Posting Thread
+          </Button>
+          <Link to="/">
+            <Button type="button" variant="ghost">
+              Batal
+            </Button>
+          </Link>
         </div>
       </form>
     </div>
