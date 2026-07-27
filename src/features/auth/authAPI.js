@@ -44,7 +44,9 @@ export const login = async (email, password) => {
   })
 
   // Dicoding API returns: { status, message, data: { token } }
-  return response.data?.data || response
+  // response.data should be { token: "..." }
+  const token = response.data?.token || response.token || response.data
+  return { token }
 }
 
 /**

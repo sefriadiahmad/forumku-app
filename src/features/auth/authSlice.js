@@ -7,6 +7,7 @@ import {
   clearAuthSession,
   getAuthToken,
   getUserData,
+  setUserData,
 } from '../../utils/storageUtils'
 
 const initialState = {
@@ -57,10 +58,17 @@ export const loginAsync = createAsyncThunk(
     try {
       const response = await authAPI.login(credentials.email, credentials.password)
 
-      // Save to localStorage
-      saveAuthSession(response.token, response.user)
+      // Save token to localStorage
+      saveAuthSession(response.token, null)
 
-      return response
+      // Fetch user profile after login (API only returns token)
+      try {
+        const user = await authAPI.getProfile()
+        return { token: response.token, user }
+      } catch {
+        // If profile fetch fails, still return token
+        return { token: response.token, user: null }
+      }
     } catch (error) {
       return rejectWithValue(
         error.message || error.data?.message || 'Login failed'
@@ -169,6 +177,10 @@ const authSlice = createSlice({
         state.token = action.payload.token
         state.isAuthenticated = true
         state.error = null
+        // Save user data to localStorage if we have it
+        if (action.payload.user) {
+          setUserData(action.payload.user)
+        }
       })
       .addCase(loginAsync.rejected, (state, action) => {
         state.loading = false
@@ -183,10 +195,27 @@ const authSlice = createSlice({
       .addCase(getProfileAsync.fulfilled, (state, action) => {
         state.loading = false
         state.user = action.payload
+        // Save user data to localStorage for persistence
+        setUserData(action.payload)
+        // Ensure user stays authenticated if they have a token
+        if (state.token) {
+          state.isAuthenticated = true
+        }
       })
       .addCase(getProfileAsync.rejected, (state, action) => {
         state.loading = false
-        state.error = action.payload
+        // If rejected with null payload (silent fail from our code), don't change state
+        // If it's an actual error (401 = token invalid), clear auth state
+        if (action.payload === null) {
+          // Silent fail - token check returned null, just clear loading
+        } else {
+          // Real error - possibly token expired
+          // Clear auth state since the token is invalid
+          state.user = null
+          state.token = null
+          state.isAuthenticated = false
+          clearAuthSession()
+        }
       })
 
     // Update Profile

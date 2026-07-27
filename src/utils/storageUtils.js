@@ -20,7 +20,12 @@ const STORAGE_KEYS = {
  */
 export const getAuthToken = () => {
   try {
-    return localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)
+    const token = localStorage.getItem(STORAGE_KEYS.AUTH_TOKEN)
+    // Handle edge cases
+    if (!token || token === 'undefined' || token === 'null' || token === '') {
+      return null
+    }
+    return token
   } catch (error) {
     console.warn('Error reading auth token:', error)
     return null
@@ -33,7 +38,11 @@ export const getAuthToken = () => {
  */
 export const setAuthToken = (token) => {
   try {
-    localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, token)
+    if (!token) {
+      removeAuthToken()
+    } else {
+      localStorage.setItem(STORAGE_KEYS.AUTH_TOKEN, token)
+    }
   } catch (error) {
     console.warn('Error setting auth token:', error)
   }
@@ -67,7 +76,11 @@ export const hasAuthToken = () => {
 export const getUserData = () => {
   try {
     const data = localStorage.getItem(STORAGE_KEYS.USER_DATA)
-    return data ? JSON.parse(data) : null
+    // Handle edge cases: null, undefined string, empty string
+    if (!data || data === 'undefined' || data === 'null' || data === '') {
+      return null
+    }
+    return JSON.parse(data)
   } catch (error) {
     console.warn('Error reading user data:', error)
     return null
@@ -80,7 +93,12 @@ export const getUserData = () => {
  */
 export const setUserData = (userData) => {
   try {
-    localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(userData))
+    if (userData == null) {
+      // If null/undefined, remove the item instead
+      removeUserData()
+    } else {
+      localStorage.setItem(STORAGE_KEYS.USER_DATA, JSON.stringify(userData))
+    }
   } catch (error) {
     console.warn('Error setting user data:', error)
   }

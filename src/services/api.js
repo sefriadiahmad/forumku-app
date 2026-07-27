@@ -1,7 +1,7 @@
 // API Service - Base API configuration with interceptors
 // ForumKu API Service Layer
 
-import { getAuthToken, removeAuthToken } from '../utils/storageUtils'
+import { getAuthToken } from '../utils/storageUtils'
 
 // ==================== CONFIGURATION ====================
 
@@ -110,7 +110,7 @@ const processResponse = async (response) => {
       case 400:
         throw new ApiError(data.errors?.[0]?.msg || 'Invalid request', 400, errorData)
       case 401:
-        removeAuthToken()
+        // Don't auto-remove token here - let authSlice handle logout
         throw new UnauthorizedError(message)
       case 403:
         throw new ApiError('Access forbidden', 403, errorData)
