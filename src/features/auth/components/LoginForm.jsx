@@ -11,22 +11,20 @@ import { clsx } from 'clsx'
 import { Button, Input } from '../../../components/ui'
 import { useToast } from '../../../components/ui/Toast'
 import { loginSchema } from '../../../utils/validationUtils'
-import { loginAsync, selectAuthLoading, selectAuthError, clearError } from '../authSlice'
+import { loginAsync, selectAuthLoading } from '../authSlice'
 
 const LoginForm = () => {
   const dispatch = useDispatch()
   const navigate = useNavigate()
   const { toast } = useToast()
   const loading = useSelector(selectAuthLoading)
-  const serverError = useSelector(selectAuthError)
 
   const [showPassword, setShowPassword] = useState(false)
 
   const {
     register,
     handleSubmit,
-    formState: { errors },
-    setError,
+    formState: { errors, isSubmitting },
   } = useForm({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -34,12 +32,6 @@ const LoginForm = () => {
       password: '',
     },
   })
-
-  // Handle server errors
-  if (serverError && !errors.email && !errors.password) {
-    setError('email', { type: 'server', message: serverError })
-    dispatch(clearError())
-  }
 
   const onSubmit = async (data) => {
     try {
@@ -50,7 +42,8 @@ const LoginForm = () => {
         navigate('/')
       }
     } catch (err) {
-      toast.error(err.message || 'Login gagal')
+      console.error('Login error:', err)
+      toast.error(err?.message || 'Login gagal. Silakan coba lagi.')
     }
   }
 
@@ -123,7 +116,7 @@ const LoginForm = () => {
       <Button
         type="submit"
         fullWidth
-        loading={loading}
+        loading={loading || isSubmitting}
         className="mt-6"
       >
         Masuk

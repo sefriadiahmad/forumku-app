@@ -3,15 +3,13 @@
 import { api } from '../../services/api'
 import { endpoints } from '../../services/apiEndpoints'
 
-// ==================== AUTH API ====================
-
 /**
  * Register new user
  * POST /register
  * @param {string} name - User's name
  * @param {string} email - User's email
  * @param {string} password - User's password (min 6 characters)
- * @returns {Promise<{user: User}>} User data
+ * @returns {Promise<{user: User, token: string|null}>} User data and optional token
  */
 export const register = async (name, email, password) => {
   const response = await api.post(endpoints.AUTH.REGISTER, {
@@ -21,7 +19,15 @@ export const register = async (name, email, password) => {
   })
 
   // Dicoding API returns: { status, message, data: { user } }
-  return response.data?.data?.user || response.data?.user || response
+  // Some implementations may also return a token
+  const token = response.data?.token || response.token
+  const user = response.data?.data?.user || response.data?.user || response
+
+  if (token) {
+    return { user, token }
+  }
+
+  return { user, token: null }
 }
 
 /**

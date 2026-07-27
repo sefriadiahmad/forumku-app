@@ -6,13 +6,8 @@ import { getAuthToken, removeAuthToken } from '../utils/storageUtils'
 // ==================== CONFIGURATION ====================
 
 const API_BASE_URL = import.meta.env.VITE_API_URL
-const REQUEST_TIMEOUT = import.meta.env.VITE_API_TIMEOUT
+const REQUEST_TIMEOUT = parseInt(import.meta.env.VITE_API_TIMEOUT, 10) || 30000
 
-// ==================== ERROR CLASSES ====================
-
-/**
- * Custom API Error class
- */
 export class ApiError extends Error {
   constructor(message, status, data = null) {
     super(message)
@@ -22,9 +17,6 @@ export class ApiError extends Error {
   }
 }
 
-/**
- * Network Error
- */
 export class NetworkError extends ApiError {
   constructor(message = 'Network error occurred') {
     super(message, 0)
@@ -32,9 +24,6 @@ export class NetworkError extends ApiError {
   }
 }
 
-/**
- * Timeout Error
- */
 export class TimeoutError extends ApiError {
   constructor(message = 'Request timed out') {
     super(message, 408)
@@ -42,9 +31,6 @@ export class TimeoutError extends ApiError {
   }
 }
 
-/**
- * Unauthorized Error
- */
 export class UnauthorizedError extends ApiError {
   constructor(message = 'Unauthorized access') {
     super(message, 401)
@@ -52,112 +38,38 @@ export class UnauthorizedError extends ApiError {
   }
 }
 
-// ==================== REQUEST INTERCEPTORS ====================
+// ==================== URL HELPER ====================
 
-/**
- * Process request before sending
- * @param {Request} request - Fetch request object
- * @returns {Request} Processed request
- */
-const processRequest = (request) => {
-  // Add auth token if available
+const buildUrl = (endpoint, params = {}) => {
+  let baseUrl = endpoint
+  if (!endpoint.startsWith('http://') && !endpoint.startsWith('https://')) {
+    baseUrl = `${API_BASE_URL}${endpoint.startsWith('/') ? '' : '/'}${endpoint}`
+  }
+  const url = new URL(baseUrl)
+  Object.entries(params).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') {
+      url.searchParams.append(key, value)
+    }
+  })
+  return url.toString()
+}
+
+// ==================== REQUEST HEADERS ====================
+
+const getHeaders = () => {
+  const headers = {
+    'Content-Type': 'application/json',
+    'Accept': 'application/json',
+  }
   const token = getAuthToken()
   if (token) {
-    request.headers.set('Authorization', `Bearer ${token}`)
+    headers['Authorization'] = `Bearer ${token}`
   }
-
-  // Add default headers
-  request.headers.set('Content-Type', 'application/json')
-  request.headers.set('Accept', 'application/json')
-  request.headers.set('X-Requested-With', 'XMLHttpRequest')
-
-  // Add timestamp for cache busting on GET requests
-  if (request.method === 'GET') {
-    const url = new URL(request.url)
-    url.searchParams.set('_t', Date.now())
-    request.url = url.toString()
-  }
-
-  return request
+  return headers
 }
 
-// ==================== RESPONSE INTERCEPTORS ====================
+// ==================== FETCH WITH TIMEOUT ====================
 
-/**
- * Process successful response
- * @param {Response} response - Fetch response object
- * @param {Object} requestData - Original request data
- * @returns {Promise<Object>} Parsed response data
- */
-const processResponse = async (response, _requestData = {}) => {
-  // Parse response
-  const contentType = response.headers.get('content-type')
-  const isJson = contentType?.includes('application/json')
-  const data = isJson ? await response.json() : await response.text()
-
-  // Check for API error response
-  if (!response.ok) {
-    throw createApiError(response.status, data)
-  }
-
-  return data
-}
-
-/**
- * Process error response
- * @param {number} status - HTTP status code
- * @param {Object} data - Response data
- * @returns {ApiError} Appropriate error type
- */
-const createApiError = (status, data) => {
-  let message = 'An error occurred'
-  let errorData = data
-
-  if (data && typeof data === 'object') {
-    message = data.message || data.error || data.msg || message
-    errorData = data.errors || data
-  }
-
-  // Handle specific status codes
-  switch (status) {
-    case 400:
-      return new ApiError(
-        data.errors?.[0]?.msg || 'Invalid request',
-        status,
-        errorData
-      )
-    case 401:
-      // Clear auth token on unauthorized
-      removeAuthToken()
-      return new UnauthorizedError(message)
-    case 403:
-      return new ApiError('Access forbidden', status, errorData)
-    case 404:
-      return new ApiError('Resource not found', status, errorData)
-    case 422:
-      return new ApiError(
-        data.errors?.map((e) => e.msg).join(', ') || 'Validation error',
-        status,
-        errorData
-      )
-    case 429:
-      return new ApiError('Too many requests. Please try again later.', status, errorData)
-    case 500:
-      return new ApiError('Server error. Please try again later.', status, errorData)
-    default:
-      return new ApiError(message, status, errorData)
-  }
-}
-
-// ==================== REQUEST HANDLER ====================
-
-/**
- * Execute fetch with timeout
- * @param {string} url - Request URL
- * @param {Object} options - Fetch options
- * @param {number} timeout - Timeout in milliseconds
- * @returns {Promise<Response>} Fetch response
- */
 const fetchWithTimeout = async (url, options, timeout = REQUEST_TIMEOUT) => {
   const controller = new AbortController()
   const timeoutId = setTimeout(() => controller.abort(), timeout)
@@ -178,136 +90,111 @@ const fetchWithTimeout = async (url, options, timeout = REQUEST_TIMEOUT) => {
   }
 }
 
+// ==================== PROCESS RESPONSE ====================
+
+const processResponse = async (response) => {
+  const contentType = response.headers.get('content-type')
+  const isJson = contentType?.includes('application/json')
+  const data = isJson ? await response.json() : await response.text()
+
+  if (!response.ok) {
+    let message = 'An error occurred'
+    let errorData = data
+
+    if (data && typeof data === 'object') {
+      message = data.message || data.error || data.msg || message
+      errorData = data.errors || data
+    }
+
+    switch (response.status) {
+      case 400:
+        throw new ApiError(data.errors?.[0]?.msg || 'Invalid request', 400, errorData)
+      case 401:
+        removeAuthToken()
+        throw new UnauthorizedError(message)
+      case 403:
+        throw new ApiError('Access forbidden', 403, errorData)
+      case 404:
+        throw new ApiError('Resource not found', 404, errorData)
+      case 422:
+        throw new ApiError(
+          data.errors?.map((e) => e.msg).join(', ') || 'Validation error',
+          422,
+          errorData
+        )
+      case 429:
+        throw new ApiError('Too many requests. Please try again later.', 429, errorData)
+      case 500:
+        throw new ApiError('Server error. Please try again later.', 500, errorData)
+      default:
+        throw new ApiError(message, response.status, errorData)
+    }
+  }
+
+  return data
+}
+
 // ==================== HTTP METHODS ====================
 
-/**
- * Make GET request
- * @param {string} endpoint - API endpoint
- * @param {Object} params - Query parameters
- * @param {Object} options - Request options
- * @returns {Promise<Object>} Response data
- */
-export const get = async (endpoint, params = {}, options = {}) => {
-  const url = new URL(endpoint, API_BASE_URL).toString()
-  const finalUrl = params && Object.keys(params).length > 0
-    ? `${url}?${new URLSearchParams(params).toString()}`
-    : url
-
-  const request = new Request(finalUrl, {
+export const get = async (endpoint, params = {}) => {
+  const url = buildUrl(endpoint, params)
+  const response = await fetchWithTimeout(url, {
     method: 'GET',
-    ...options,
+    headers: getHeaders(),
   })
-
-  const processedRequest = processRequest(request)
-  const response = await fetchWithTimeout(processedRequest.url, processedRequest)
-
-  return processResponse(response, { method: 'GET', endpoint, params })
+  return processResponse(response)
 }
 
-/**
- * Make POST request
- * @param {string} endpoint - API endpoint
- * @param {Object} data - Request body data
- * @param {Object} options - Request options
- * @returns {Promise<Object>} Response data
- */
-export const post = async (endpoint, data = {}, options = {}) => {
-  const url = new URL(endpoint, API_BASE_URL).toString()
-
-  const request = new Request(url, {
+export const post = async (endpoint, data = {}) => {
+  const url = buildUrl(endpoint)
+  const response = await fetchWithTimeout(url, {
     method: 'POST',
+    headers: getHeaders(),
     body: JSON.stringify(data),
-    ...options,
   })
-
-  const processedRequest = processRequest(request)
-  const response = await fetchWithTimeout(processedRequest.url, processedRequest)
-
-  return processResponse(response, { method: 'POST', endpoint, data })
+  return processResponse(response)
 }
 
-/**
- * Make PUT request
- * @param {string} endpoint - API endpoint
- * @param {Object} data - Request body data
- * @param {Object} options - Request options
- * @returns {Promise<Object>} Response data
- */
-export const put = async (endpoint, data = {}, options = {}) => {
-  const url = new URL(endpoint, API_BASE_URL).toString()
-
-  const request = new Request(url, {
+export const put = async (endpoint, data = {}) => {
+  const url = buildUrl(endpoint)
+  const response = await fetchWithTimeout(url, {
     method: 'PUT',
+    headers: getHeaders(),
     body: JSON.stringify(data),
-    ...options,
   })
-
-  const processedRequest = processRequest(request)
-  const response = await fetchWithTimeout(processedRequest.url, processedRequest)
-
-  return processResponse(response, { method: 'PUT', endpoint, data })
+  return processResponse(response)
 }
 
-/**
- * Make PATCH request
- * @param {string} endpoint - API endpoint
- * @param {Object} data - Request body data
- * @param {Object} options - Request options
- * @returns {Promise<Object>} Response data
- */
-export const patch = async (endpoint, data = {}, options = {}) => {
-  const url = new URL(endpoint, API_BASE_URL).toString()
-
-  const request = new Request(url, {
+export const patch = async (endpoint, data = {}) => {
+  const url = buildUrl(endpoint)
+  const response = await fetchWithTimeout(url, {
     method: 'PATCH',
+    headers: getHeaders(),
     body: JSON.stringify(data),
-    ...options,
   })
-
-  const processedRequest = processRequest(request)
-  const response = await fetchWithTimeout(processedRequest.url, processedRequest)
-
-  return processResponse(response, { method: 'PATCH', endpoint, data })
+  return processResponse(response)
 }
 
-/**
- * Make DELETE request
- * @param {string} endpoint - API endpoint
- * @param {Object} options - Request options
- * @returns {Promise<Object>} Response data
- */
-export const del = async (endpoint, options = {}) => {
-  const url = new URL(endpoint, API_BASE_URL).toString()
-
-  const request = new Request(url, {
+export const del = async (endpoint) => {
+  const url = buildUrl(endpoint)
+  const response = await fetchWithTimeout(url, {
     method: 'DELETE',
-    ...options,
+    headers: getHeaders(),
   })
-
-  const processedRequest = processRequest(request)
-  const response = await fetchWithTimeout(processedRequest.url, processedRequest)
-
-  return processResponse(response, { method: 'DELETE', endpoint })
+  return processResponse(response)
 }
 
-// ==================== API SERVICE OBJECT ====================
+// ==================== API OBJECT ====================
 
-/**
- * API Service with all HTTP methods
- */
 export const api = {
   get,
   post,
   put,
   patch,
   del,
-  delete: del, // Alias
-
-  // Config
+  delete: del,
   baseUrl: API_BASE_URL,
   timeout: REQUEST_TIMEOUT,
-
-  // Error classes for type checking
   errors: {
     ApiError,
     NetworkError,

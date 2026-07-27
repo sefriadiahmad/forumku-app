@@ -2,7 +2,7 @@
 // ForumKu Application Entry Point
 import { BrowserRouter, Routes, Route } from 'react-router-dom'
 import { useDispatch } from 'react-redux'
-import { Suspense, lazy } from 'react'
+import { Suspense, lazy, useEffect, useCallback } from 'react'
 
 // Layout
 import { PageLayout } from './components/layout'
@@ -22,7 +22,7 @@ import { ProtectedRoute } from './components/auth'
 
 // Auth slice
 import { getProfileAsync } from './features/auth/authSlice'
-import { useEffect } from 'react'
+import { getAuthToken } from './utils/storageUtils'
 
 // Page loading fallback
 const PageLoader = () => (
@@ -35,10 +35,17 @@ const PageLoader = () => (
 const useAuthChecker = () => {
   const dispatch = useDispatch()
 
-  useEffect(() => {
-    // Try to restore session on app load
-    dispatch(getProfileAsync())
+  const checkAuth = useCallback(() => {
+    // Only check profile if we have a token to avoid unnecessary API calls
+    const token = getAuthToken()
+    if (token) {
+      dispatch(getProfileAsync())
+    }
   }, [dispatch])
+
+  useEffect(() => {
+    checkAuth()
+  }, [checkAuth])
 }
 
 function App() {

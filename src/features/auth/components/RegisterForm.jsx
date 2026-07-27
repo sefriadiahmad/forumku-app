@@ -11,14 +11,13 @@ import { clsx } from 'clsx'
 import { Button, Input } from '../../../components/ui'
 import { useToast } from '../../../components/ui/Toast'
 import { registerSchema } from '../../../utils/validationUtils'
-import { registerAsync, selectAuthLoading, selectAuthError, clearError } from '../authSlice'
+import { registerAsync, selectAuthLoading } from '../authSlice'
 
 const RegisterForm = () => {
   const dispatch = useDispatch()
   const navigate = useNavigate()
   const { toast } = useToast()
   const loading = useSelector(selectAuthLoading)
-  const serverError = useSelector(selectAuthError)
 
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
@@ -26,8 +25,7 @@ const RegisterForm = () => {
   const {
     register,
     handleSubmit,
-    formState: { errors },
-    setError,
+    formState: { errors, isSubmitting },
     watch,
   } = useForm({
     resolver: zodResolver(registerSchema),
@@ -60,22 +58,34 @@ const RegisterForm = () => {
   const strengthLabels = ['', 'Lemah', 'Sedang', 'Kuat', 'Sangat Kuat']
   const strengthColors = ['', 'bg-error', 'bg-warning', 'bg-success', 'bg-success']
 
-  // Handle server errors
-  if (serverError && !errors.email && !errors.password) {
-    setError('email', { type: 'server', message: serverError })
-    dispatch(clearError())
-  }
-
   const onSubmit = async (data) => {
     try {
-      const result = await dispatch(registerAsync(data))
+      const result = await dispatch(registerAsync({
+        name: data.name,
+        email: data.email,
+        password: data.password,
+      }))
 
       if (registerAsync.fulfilled.match(result)) {
-        toast.success('Registrasi berhasil! Selamat datang!')
-        navigate('/')
+        // Check if user was authenticated (token was returned)
+        if (result.payload.isAuthenticated) {
+          toast.success('Registrasi berhasil! Selamat datang!')
+          navigate('/')
+        } else {
+          // No token returned - redirect to login
+          toast.success('Registrasi berhasil! Silakan login.')
+          navigate('/login')
+        }
+      } else if (registerAsync.rejected.match(result)) {
+        // Handle rejection case
+        const errorMessage = result.payload || 'Registrasi gagal'
+        toast.error(errorMessage)
       }
     } catch (err) {
-      toast.error(err.message || 'Registrasi gagal')
+      // This shouldn't happen as errors are handled via Redux state
+      // But just in case
+      console.error('Registration error:', err)
+      toast.error(err?.message || 'Registrasi gagal. Silakan coba lagi.')
     }
   }
 
@@ -206,7 +216,7 @@ const RegisterForm = () => {
       <Button
         type="submit"
         fullWidth
-        loading={loading}
+        loading={loading || isSubmitting}
         className="mt-4"
       >
         Daftar

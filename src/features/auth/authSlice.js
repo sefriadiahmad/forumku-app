@@ -9,8 +9,6 @@ import {
   getUserData,
 } from '../../utils/storageUtils'
 
-// ==================== INITIAL STATE ====================
-
 const initialState = {
   user: getUserData(),
   token: getAuthToken(),
@@ -19,8 +17,6 @@ const initialState = {
   error: null,
 }
 
-// ==================== ASYNC THUNKS ====================
-
 /**
  * Register new user
  */
@@ -28,16 +24,22 @@ export const registerAsync = createAsyncThunk(
   'auth/register',
   async (userData, { rejectWithValue }) => {
     try {
-      const response = await authAPI.register(
+      // Dicoding API register returns: { status, message, data: { user } }
+      // Some implementations may also return a token
+      const result = await authAPI.register(
         userData.name,
         userData.email,
         userData.password
       )
 
-      // Save to localStorage
-      saveAuthSession(response.token, response.user)
+      // If API returns a token, save the session
+      if (result.token) {
+        saveAuthSession(result.token, result.user)
+        return { user: result.user, token: result.token, isAuthenticated: true }
+      }
 
-      return response
+      // If no token, user must login after
+      return { user: result.user, token: null, isAuthenticated: false }
     } catch (error) {
       return rejectWithValue(
         error.message || error.data?.message || 'Registration failed'
@@ -72,11 +74,21 @@ export const loginAsync = createAsyncThunk(
  */
 export const getProfileAsync = createAsyncThunk(
   'auth/getProfile',
-  async (_, { rejectWithValue }) => {
+  async (_, { rejectWithValue, getState }) => {
+    // Don't show error if there's no token (expected for unauthenticated users)
+    const { auth } = getState()
+    if (!auth.token) {
+      return rejectWithValue(null) // Silent fail
+    }
+
     try {
       const user = await authAPI.getProfile()
       return user
     } catch (error) {
+      // Only show error if there's a token (session expired, etc.)
+      if (error.status === 401) {
+        return rejectWithValue(null) // Silent fail for auth errors
+      }
       return rejectWithValue(
         error.message || error.data?.message || 'Failed to get profile'
       )
@@ -137,7 +149,7 @@ const authSlice = createSlice({
         state.loading = false
         state.user = action.payload.user
         state.token = action.payload.token
-        state.isAuthenticated = true
+        state.isAuthenticated = action.payload.isAuthenticated
         state.error = null
       })
       .addCase(registerAsync.rejected, (state, action) => {
