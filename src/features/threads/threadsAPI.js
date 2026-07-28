@@ -153,7 +153,13 @@ export const upvoteThread = async (threadId) => {
   const response = await api.post(endpoints.THREADS.UP_VOTE(threadId))
 
   // Dicoding API returns: { status, message, data: { vote } }
-  return response.data || response
+  const voteData = response.data?.vote || response.vote || response.data || response
+
+  return {
+    threadId,
+    upvotes: voteData.upVotesBy?.length || voteData.upvotes || 0,
+    downvotes: voteData.downVotesBy?.length || voteData.downvotes || 0,
+  }
 }
 
 /**
@@ -162,7 +168,15 @@ export const upvoteThread = async (threadId) => {
  */
 export const downvoteThread = async (threadId) => {
   const response = await api.post(endpoints.THREADS.DOWN_VOTE(threadId))
-  return response.data || response
+
+  // Dicoding API returns: { status, message, data: { vote } }
+  const voteData = response.data?.vote || response.vote || response.data || response
+
+  return {
+    threadId,
+    upvotes: voteData.upVotesBy?.length || voteData.upvotes || 0,
+    downvotes: voteData.downVotesBy?.length || voteData.downvotes || 0,
+  }
 }
 
 /**
@@ -171,7 +185,15 @@ export const downvoteThread = async (threadId) => {
  */
 export const neutralizeThreadVote = async (threadId) => {
   const response = await api.post(endpoints.THREADS.NEUTRAL_VOTE(threadId))
-  return response.data || response
+
+  // Dicoding API returns: { status, message, data: { vote } }
+  const voteData = response.data?.vote || response.vote || response.data || response
+
+  return {
+    threadId,
+    upvotes: voteData.upVotesBy?.length || voteData.upvotes || 0,
+    downvotes: voteData.downVotesBy?.length || voteData.downvotes || 0,
+  }
 }
 
 // ==================== API OBJECT ====================

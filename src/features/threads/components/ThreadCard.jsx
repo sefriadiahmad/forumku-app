@@ -36,14 +36,14 @@ const ThreadCard = ({
     author,
     upvotes = 0,
     downvotes = 0,
-    commentsCount = 0,
+    totalComments = 0,
     createdAt,
     userVote = null,
   } = thread
 
   const relativeTime = useRelativeTime(createdAt)
 
-  // Handle vote
+  // Handle vote - with toggle support (click again to remove vote)
   const handleVote = async (direction) => {
     if (!isAuthenticated) {
       navigate('/login')
@@ -54,20 +54,26 @@ const ThreadCard = ({
     const previousDownvotes = downvotes
     const previousVote = userVote
 
+    // Determine actual direction - toggle if clicking same vote again
+    let actualDirection = direction
+    if (userVote === direction) {
+      actualDirection = 'neutral'
+    }
+
     // Optimistic update
     dispatch(optimisticVote({
       threadId: id,
-      direction,
+      direction: actualDirection,
       previousVote,
     }))
 
     try {
-      if (direction === 'up') {
-        await dispatch(upvoteThreadAsync(id)).unwrap()
-      } else if (direction === 'down') {
-        await dispatch(downvoteThreadAsync(id)).unwrap()
-      } else {
+      if (actualDirection === 'neutral') {
         await dispatch(neutralizeVoteAsync(id)).unwrap()
+      } else if (actualDirection === 'up') {
+        await dispatch(upvoteThreadAsync(id)).unwrap()
+      } else if (actualDirection === 'down') {
+        await dispatch(downvoteThreadAsync(id)).unwrap()
       }
     } catch {
       // Rollback on error
@@ -108,49 +114,53 @@ const ThreadCard = ({
       tabIndex={0}
       {...props}
     >
-      <div className="flex gap-4">
-        {/* Vote Section */}
-        {showVoting && (
-          <div className="flex flex-col items-center gap-1" onClick={(e) => e.stopPropagation()}>
-            <VoteGroup
-              upvotes={upvotes}
-              downvotes={downvotes}
-              userVote={userVote}
-              onUpvote={() => handleVote('up')}
-              onDownvote={() => handleVote('down')}
-              size="sm"
-            />
-          </div>
-        )}
+      {/* Content Section */}
+      <div className="flex-1 min-w-0">
+        {/* Author Row */}
+        <div className="flex items-center gap-2 mb-2">
+          <Avatar
+            src={author?.avatar}
+            name={author?.name || author?.username || 'Anonymous'}
+            size="sm"
+          />
+          <span className="text-sm font-medium text-text-primary">
+            {author?.name || author?.username || 'Anonymous'}
+          </span>
+          <span className="text-text-tertiary text-sm">•</span>
+          <span className="text-text-tertiary text-sm">{relativeTime}</span>
+        </div>
 
-        {/* Content Section */}
-        <div className="flex-1 min-w-0">
-          {/* Author Row */}
-          <div className="flex items-center gap-2 mb-2">
-            <Avatar
-              src={author?.avatar}
-              name={author?.name || author?.username || 'Anonymous'}
-              size="sm"
-            />
-            <span className="text-sm font-medium text-text-primary">
-              {author?.name || author?.username || 'Anonymous'}
-            </span>
-            <span className="text-text-tertiary text-sm">•</span>
-            <span className="text-text-tertiary text-sm">{relativeTime}</span>
-          </div>
+        {/* Title */}
+        <h3 className="text-lg font-semibold text-text-primary mb-2 line-clamp-2">
+          {title}
+        </h3>
 
-          {/* Title */}
-          <h3 className="text-lg font-semibold text-text-primary mb-2 line-clamp-2">
-            {title}
-          </h3>
+        {/* Body Preview */}
+        <p className="text-text-secondary text-sm mb-3 line-clamp-2">
+          {body}
+        </p>
 
-          {/* Body Preview */}
-          <p className="text-text-secondary text-sm mb-3 line-clamp-2">
-            {body}
-          </p>
+        {/* Footer */}
+        <div className="flex items-center justify-between">
+          {/* Vote Section */}
+          {showVoting && (
+            <div
+              className="flex items-center gap-3"
+              onClick={(e) => e.stopPropagation()}
+            >
+              <VoteGroup
+                upvotes={upvotes}
+                downvotes={downvotes}
+                userVote={userVote}
+                onUpvote={() => handleVote('up')}
+                onDownvote={() => handleVote('down')}
+                size="sm"
+              />
+            </div>
+          )}
 
-          {/* Footer */}
-          <div className="flex items-center justify-between">
+          {/* Right side */}
+          <div className="flex items-center gap-3">
             {/* Category */}
             {category && (
               <CategoryBadge size="sm">{category}</CategoryBadge>
@@ -160,7 +170,7 @@ const ThreadCard = ({
             {showComments && (
               <div className="flex items-center gap-1 text-text-tertiary text-sm">
                 <MessageCircle className="w-4 h-4" />
-                <span>{commentsCount || 0}</span>
+                <span>{totalComments || 0}</span>
               </div>
             )}
           </div>
@@ -174,37 +184,31 @@ const ThreadCard = ({
 ThreadCard.Skeleton = function ThreadCardSkeleton() {
   return (
     <article className="bg-surface border border-border rounded-lg p-5">
-      <div className="flex gap-4">
-        {/* Vote Skeleton */}
-        <div className="flex flex-col items-center gap-1 w-10">
-          <Skeleton width="24px" height="24px" />
-          <Skeleton width="24px" height="16px" />
-          <Skeleton width="24px" height="24px" />
+      {/* Content Skeleton */}
+      <div className="flex-1">
+        {/* Author Row */}
+        <div className="flex items-center gap-2 mb-3">
+          <Skeleton variant="circle" width="32px" height="32px" />
+          <Skeleton width="100px" height="14px" />
+          <Skeleton width="60px" height="14px" />
         </div>
 
-        {/* Content Skeleton */}
-        <div className="flex-1">
-          {/* Author Row */}
-          <div className="flex items-center gap-2 mb-3">
-            <Skeleton variant="circle" width="32px" height="32px" />
-            <Skeleton width="100px" height="14px" />
-            <Skeleton width="60px" height="14px" />
-          </div>
+        {/* Title */}
+        <Skeleton width="75%" height="20px" className="mb-2" />
 
-          {/* Title */}
-          <Skeleton width="75%" height="20px" className="mb-2" />
+        {/* Body */}
+        <div className="space-y-1 mb-3">
+          <Skeleton width="100%" height="14px" />
+          <Skeleton width="90%" height="14px" />
+        </div>
 
-          {/* Body */}
-          <div className="space-y-1 mb-3">
-            <Skeleton width="100%" height="14px" />
-            <Skeleton width="90%" height="14px" />
-          </div>
-
-          {/* Footer */}
-          <div className="flex items-center justify-between">
+        {/* Footer */}
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <Skeleton width="60px" height="24px" />
             <Skeleton width="80px" height="24px" />
-            <Skeleton width="60px" height="20px" />
           </div>
+          <Skeleton width="60px" height="20px" />
         </div>
       </div>
     </article>

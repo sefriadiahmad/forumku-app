@@ -1,7 +1,7 @@
 // VoteButton Component - ForumKu Design System
 // Upvote/Downvote buttons with active states and animations
 import { forwardRef } from 'react'
-import { ChevronUp, ChevronDown } from 'lucide-react'
+import { ThumbsUp, ThumbsDown } from 'lucide-react'
 import { clsx } from 'clsx'
 
 const VoteButton = forwardRef(({
@@ -72,9 +72,9 @@ const VoteButton = forwardRef(({
         {...props}
       >
         {isUpvote ? (
-          <ChevronUp className={sizes[size].icon} strokeWidth={isActive ? 3 : 2} />
+          <ThumbsUp className={sizes[size].icon} strokeWidth={isActive ? 3 : 2} />
         ) : (
-          <ChevronDown className={sizes[size].icon} strokeWidth={isActive ? 3 : 2} />
+          <ThumbsDown className={sizes[size].icon} strokeWidth={isActive ? 3 : 2} />
         )}
       </button>
 
@@ -110,17 +110,6 @@ const VoteGroup = ({
   className,
   ...props
 }) => {
-  // Calculate total score
-  const totalScore = upvotes - downvotes
-
-  // Determine display score color
-  const getScoreColor = () => {
-    if (userVote === 'up') return 'text-upvote-active'
-    if (userVote === 'down') return 'text-downvote-active'
-    if (totalScore > 0) return 'text-upvote-active'
-    if (totalScore < 0) return 'text-downvote-active'
-    return 'text-text-secondary'
-  }
 
   return (
     <div
@@ -139,17 +128,6 @@ const VoteGroup = ({
         disabled={disabled}
         size={size}
       />
-
-      {/* Score */}
-      <span
-        className={clsx(
-          'font-bold min-w-[2rem] text-center',
-          size === 'sm' ? 'text-sm' : 'text-base',
-          getScoreColor()
-        )}
-      >
-        {totalScore}
-      </span>
 
       {/* Downvote Button */}
       <VoteButton

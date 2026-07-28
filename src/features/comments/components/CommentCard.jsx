@@ -41,7 +41,7 @@ const CommentCard = ({
   const relativeTime = useRelativeTime(comment.createdAt)
   const isAuthor = currentUser && comment.author?.id === currentUser.id
 
-  // Handle vote with optimistic update
+  // Handle vote with optimistic update and toggle support
   const handleVote = async (direction) => {
     if (!isAuthenticated) return
 
@@ -49,20 +49,26 @@ const CommentCard = ({
     const previousDownvotes = comment.downvotes
     const previousVote = comment.userVote
 
+    // Determine actual direction - toggle if clicking same vote again
+    let actualDirection = direction
+    if (comment.userVote === direction) {
+      actualDirection = 'neutral'
+    }
+
     // Optimistic update
     dispatch(optimisticVote({
       commentId: comment.id,
-      direction,
+      direction: actualDirection,
       previousVote,
     }))
 
     try {
-      if (direction === 'up') {
-        await dispatch(upvoteCommentThunk({ threadId, commentId: comment.id })).unwrap()
-      } else if (direction === 'down') {
-        await dispatch(downvoteCommentThunk({ threadId, commentId: comment.id })).unwrap()
-      } else {
+      if (actualDirection === 'neutral') {
         await dispatch(neutralizeCommentVoteThunk({ threadId, commentId: comment.id })).unwrap()
+      } else if (actualDirection === 'up') {
+        await dispatch(upvoteCommentThunk({ threadId, commentId: comment.id })).unwrap()
+      } else if (actualDirection === 'down') {
+        await dispatch(downvoteCommentThunk({ threadId, commentId: comment.id })).unwrap()
       }
     } catch {
       // Rollback on error
@@ -222,7 +228,6 @@ const CommentCard = ({
               userVote={comment.userVote}
               onUpvote={() => handleVote('up')}
               onDownvote={() => handleVote('down')}
-              onNeutral={() => handleVote('neutral')}
               size="sm"
             />
 
