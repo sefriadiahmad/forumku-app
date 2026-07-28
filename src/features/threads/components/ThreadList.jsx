@@ -11,6 +11,7 @@ import { Button, Spinner } from '../../../components/ui'
 import {
   fetchThreadsAsync,
   selectAllThreads,
+  selectFilteredThreads,
   selectThreadsLoading,
   selectThreadsError,
   selectFilter,
@@ -28,7 +29,9 @@ const ThreadList = ({
   ...props
 }) => {
   const dispatch = useDispatch()
-  const threads = useSelector(selectAllThreads)
+  // Keep reference to all threads for potential future use
+  const _allThreads = useSelector(selectAllThreads)
+  const filteredThreads = useSelector(selectFilteredThreads)
   const loading = useSelector(selectThreadsLoading)
   const error = useSelector(selectThreadsError)
   const filter = useSelector(selectFilter)
@@ -41,10 +44,13 @@ const ThreadList = ({
     dispatch(fetchUsersAsync())
   }, [dispatch])
 
-  // Map threads with user data
+  // Map filtered threads with user data - optimized with usersMap for O(1) lookup
   const threadsWithUsers = useMemo(() => {
-    return threads.map(thread => {
-      const user = users.find(u => u.id === thread.ownerId)
+    // Create a map for O(1) user lookup instead of O(n) find
+    const usersMap = new Map(users.map(u => [u.id, u]))
+
+    return filteredThreads.map(thread => {
+      const user = usersMap.get(thread.ownerId)
       return {
         ...thread,
         author: user ? {
@@ -54,17 +60,16 @@ const ThreadList = ({
         } : thread.author,
       }
     })
-  }, [threads, users])
+  }, [filteredThreads, users])
 
   // Fetch threads on mount or filter change
   useEffect(() => {
     dispatch(fetchThreadsAsync({
-      ...filter,
       page: pagination.page,
       size: pagination.size,
     }))
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [dispatch, filter])
+  }, [dispatch])
 
   // Loading state
   if (loading && threadsWithUsers.length === 0) {
@@ -140,7 +145,7 @@ const ThreadList = ({
       )}
 
       {/* No More */}
-      {!loading && !pagination.hasMore && threads.length > 0 && (
+      {!loading && !pagination.hasMore && threadsWithUsers.length > 0 && (
         <p className="text-center text-text-tertiary py-4">
           Semua thread sudah dimuat
         </p>

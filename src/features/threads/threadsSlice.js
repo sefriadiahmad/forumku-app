@@ -457,28 +457,29 @@ export const selectFilter = (state) => state.threads.filter
 export const selectPagination = (state) => state.threads.pagination
 
 /**
- * Select filtered threads (based on category and search)
+ * Select filtered threads (based on category and search) - memoized
  */
-export const selectFilteredThreads = (state) => {
-  const { threads, filter } = state.threads
+export const selectFilteredThreads = createSelector(
+  [(state) => state.threads.threads, (state) => state.threads.filter],
+  (threads, filter) => {
+    return threads.filter((thread) => {
+      // Category filter
+      if (filter.category && filter.category !== 'all') {
+        if (thread.category !== filter.category) return false
+      }
 
-  return threads.filter((thread) => {
-    // Category filter
-    if (filter.category && filter.category !== 'all') {
-      if (thread.category !== filter.category) return false
-    }
+      // Search filter
+      if (filter.search) {
+        const search = filter.search.toLowerCase()
+        const matchesTitle = thread.title?.toLowerCase().includes(search)
+        const matchesBody = thread.body?.toLowerCase().includes(search)
+        if (!matchesTitle && !matchesBody) return false
+      }
 
-    // Search filter
-    if (filter.search) {
-      const search = filter.search.toLowerCase()
-      const matchesTitle = thread.title?.toLowerCase().includes(search)
-      const matchesBody = thread.body?.toLowerCase().includes(search)
-      if (!matchesTitle && !matchesBody) return false
-    }
-
-    return true
-  })
-}
+      return true
+    })
+  }
+)
 
 /**
  * Select unique categories from threads (memoized)

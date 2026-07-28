@@ -6,19 +6,9 @@ import { clsx } from 'clsx'
 
 import { setFilter, clearFilter, selectFilter, selectCategories } from '../threadsSlice'
 
-// Default categories
-const DEFAULT_CATEGORIES = [
-  { id: 'all', label: 'Semua', color: 'default' },
-  { id: 'general', label: 'Umum', color: 'primary' },
-  { id: 'tech', label: 'Teknologi', color: 'info' },
-  { id: 'lifestyle', label: 'Gaya Hidup', color: 'success' },
-  { id: 'entertainment', label: 'Hiburan', color: 'secondary' },
-  { id: 'education', label: 'Pendidikan', color: 'warning' },
-]
-
 const CategoryFilter = ({
-  categories: _categories = DEFAULT_CATEGORIES,
   showClearButton = true,
+  maxCategories = 5,
   className,
   ...props
 }) => {
@@ -26,15 +16,8 @@ const CategoryFilter = ({
   const currentFilter = useSelector(selectFilter)
   const dynamicCategories = useSelector(selectCategories)
 
-  // Merge default categories with dynamic ones
-  const allCategories = [...DEFAULT_CATEGORIES]
-
-  // Add any dynamic categories not in defaults
-  dynamicCategories.forEach((cat) => {
-    if (!allCategories.find((c) => c.id === cat)) {
-      allCategories.push({ id: cat, label: cat, color: 'default' })
-    }
-  })
+  // Get all categories (only dynamic ones from threads)
+  const allCategories = dynamicCategories.slice(0, maxCategories)
 
   const handleCategoryClick = (categoryId) => {
     if (categoryId === 'all') {
@@ -42,6 +25,11 @@ const CategoryFilter = ({
     } else {
       dispatch(setFilter({ category: categoryId }))
     }
+  }
+
+  // Don't render if no categories
+  if (allCategories.length === 0) {
+    return null
   }
 
   return (
@@ -54,31 +42,44 @@ const CategoryFilter = ({
 
       {/* Category Tabs */}
       <div className="flex flex-wrap gap-2">
+        {/* All Button */}
+        <button
+          key="all"
+          onClick={() => handleCategoryClick('all')}
+          className={clsx(
+            'px-4 py-2 rounded-full text-sm font-medium transition-all duration-200',
+            'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary',
+            currentFilter.category === 'all' || !currentFilter.category
+              ? 'bg-primary text-white shadow-sm'
+              : 'bg-surface border border-border text-text-secondary hover:border-primary hover:text-primary'
+          )}
+        >
+          Semua
+        </button>
+
+        {/* Dynamic Categories */}
         {allCategories.map((category) => {
-          const isActive = currentFilter.category === category.id ||
-            (category.id === 'all' && currentFilter.category === 'all')
+          const isActive = currentFilter.category === category
 
           return (
             <button
-              key={category.id}
-              onClick={() => handleCategoryClick(category.id)}
+              key={category}
+              onClick={() => handleCategoryClick(category)}
               className={clsx(
                 'px-4 py-2 rounded-full text-sm font-medium transition-all duration-200',
                 'focus:outline-none focus-visible:ring-2 focus-visible:ring-primary',
-
-                // Active state
                 isActive
                   ? 'bg-primary text-white shadow-sm'
                   : 'bg-surface border border-border text-text-secondary hover:border-primary hover:text-primary'
               )}
             >
-              {category.label}
+              {category}
             </button>
           )
         })}
 
         {/* Clear Filter Button */}
-        {showClearButton && (currentFilter.search || currentFilter.category !== 'all') && (
+        {showClearButton && (currentFilter.search || currentFilter.category) && (
           <button
             onClick={() => dispatch(clearFilter())}
             className={clsx(
@@ -98,18 +99,28 @@ const CategoryFilter = ({
 
 // Category Dropdown variant
 const CategoryDropdown = ({
-  categories = DEFAULT_CATEGORIES,
+  categories = [],
+  value,
+  onChange,
   className,
   ...props
 }) => {
   const dispatch = useDispatch()
   const currentFilter = useSelector(selectFilter)
 
+  const handleChange = (e) => {
+    if (onChange) {
+      onChange(e)
+    } else {
+      dispatch(setFilter({ category: e.target.value }))
+    }
+  }
+
   return (
     <div className={clsx('relative', className)} {...props}>
       <select
-        value={currentFilter.category || 'all'}
-        onChange={(e) => dispatch(setFilter({ category: e.target.value }))}
+        value={value !== undefined ? value : currentFilter.category || 'all'}
+        onChange={handleChange}
         className={clsx(
           'w-full px-4 py-3 pr-10',
           'bg-surface border-2 border-border rounded-lg',
@@ -120,11 +131,15 @@ const CategoryDropdown = ({
           'focus:outline-none'
         )}
       >
-        {categories.map((category) => (
-          <option key={category.id} value={category.id}>
-            {category.label}
-          </option>
-        ))}
+        {categories.length === 0 ? (
+          <option value="general">Umum</option>
+        ) : (
+          categories.map((category) => (
+            <option key={category.id || category} value={category.id || category}>
+              {category.label || category}
+            </option>
+          ))
+        )}
       </select>
 
       {/* Custom dropdown arrow */}
@@ -137,5 +152,5 @@ const CategoryDropdown = ({
   )
 }
 
-export { CategoryFilter, CategoryDropdown, DEFAULT_CATEGORIES }
+export { CategoryFilter, CategoryDropdown }
 export default CategoryFilter

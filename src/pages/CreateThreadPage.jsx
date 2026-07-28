@@ -7,8 +7,17 @@ import { ArrowLeft } from 'lucide-react'
 
 import { createThreadAsync, selectThreadsLoading } from '../features/threads/threadsSlice'
 import { Button, Input, Textarea } from '../components/ui'
-import { CategoryDropdown, DEFAULT_CATEGORIES } from '../features/threads/components'
+import { CategoryDropdown } from '../features/threads/components'
 import { useToast } from '../components/ui/Toast'
+
+// Available categories for thread creation
+const THREAD_CATEGORIES = [
+  'general',
+  'tech',
+  'lifestyle',
+  'entertainment',
+  'education',
+]
 
 const CreateThreadPage = () => {
   const dispatch = useDispatch()
@@ -36,6 +45,13 @@ const CreateThreadPage = () => {
         [field]: '',
       }))
     }
+  }
+
+  const handleCategoryChange = (e) => {
+    setFormData((prev) => ({
+      ...prev,
+      category: e.target.value,
+    }))
   }
 
   const validate = () => {
@@ -114,7 +130,11 @@ const CreateThreadPage = () => {
           <label className="block text-sm font-medium text-text-primary">
             Kategori
           </label>
-          <CategoryDropdown categories={DEFAULT_CATEGORIES.slice(1)} />
+          <CategoryDropdown
+            value={formData.category}
+            onChange={handleCategoryChange}
+            categories={THREAD_CATEGORIES}
+          />
           <p className="text-sm text-text-tertiary">
             Pilih kategori yang sesuai dengan thread Anda
           </p>
