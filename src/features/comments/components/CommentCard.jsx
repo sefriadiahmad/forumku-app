@@ -183,8 +183,34 @@ const CommentCard = ({
                 </div>
               </div>
             ) : (
-              <div className="mt-1 text-text-primary whitespace-pre-wrap">
-                {comment.content}
+              <div className="mt-1 text-text-primary">
+                {comment.content.includes('<') ? (
+                  <div className="whitespace-pre-wrap">
+                    {comment.content
+                      .replace(/<div\s*[^>]*>/gi, '\n')
+                      .replace(/<\/div>/gi, '\n')
+                      .replace(/<br\s*\/?>/gi, '\n')
+                      .replace(/<p[^>]*>/gi, '')
+                      .replace(/<\/p>/gi, '\n')
+                      .replace(/&nbsp;/g, ' ')
+                      .replace(/&amp;/g, '&')
+                      .replace(/&lt;/g, '<')
+                      .replace(/&gt;/g, '>')
+                      .split('\n')
+                      // eslint-disable-next-line no-unused-vars
+                      .map((line, i) => line.trim())
+                      .filter(Boolean)
+                      .map((line, i) => (
+                        <p key={i} className="mb-1">{line}</p>
+                      ))}
+                  </div>
+                ) : (
+                  <div className="whitespace-pre-wrap">
+                    {comment.content.split('\n').map((line, i) => (
+                      line.trim() ? <p key={i} className="mb-1">{line}</p> : null
+                    ))}
+                  </div>
+                )}
               </div>
             )}
           </div>

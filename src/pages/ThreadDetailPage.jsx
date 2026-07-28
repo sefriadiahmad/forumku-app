@@ -217,8 +217,34 @@ const ThreadDetailPage = () => {
           </div>
 
           {/* Content */}
-          <div className="prose prose-sm max-w-none text-text-primary whitespace-pre-wrap">
-            {body}
+          <div className="prose prose-sm max-w-none text-text-primary">
+            {body.includes('<') ? (
+              <div className="whitespace-pre-wrap">
+                {body
+                  .replace(/<div\s*[^>]*>/gi, '\n')
+                  .replace(/<\/div>/gi, '\n')
+                  .replace(/<br\s*\/?>/gi, '\n')
+                  .replace(/<p[^>]*>/gi, '')
+                  .replace(/<\/p>/gi, '\n')
+                  .replace(/&nbsp;/g, ' ')
+                  .replace(/&amp;/g, '&')
+                  .replace(/&lt;/g, '<')
+                  .replace(/&gt;/g, '>')
+                  .split('\n')
+                  // eslint-disable-next-line no-unused-vars
+                  .map((line, i) => line.trim())
+                  .filter(Boolean)
+                  .map((line, i) => (
+                    <p key={i} className="mb-2">{line}</p>
+                  ))}
+              </div>
+            ) : (
+              <div className="whitespace-pre-wrap">
+                {body.split('\n').map((line, i) => (
+                  line.trim() ? <p key={i} className="mb-2">{line}</p> : null
+                ))}
+              </div>
+            )}
           </div>
         </div>
       </article>

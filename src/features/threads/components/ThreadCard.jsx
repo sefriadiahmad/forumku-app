@@ -137,7 +137,25 @@ const ThreadCard = ({
 
         {/* Body Preview */}
         <p className="text-text-secondary text-sm mb-3 line-clamp-2">
-          {body}
+          {typeof body === 'string' && body.includes('<') ? (
+            <span dangerouslySetInnerHTML={{
+              __html: body
+                .replace(/<div\s*[^>]*>/gi, '')
+                .replace(/<\/div>/gi, '\n')
+                .replace(/<br\s*\/?>/gi, '\n')
+                .replace(/<p[^>]*>/gi, '')
+                .replace(/<\/p>/gi, '\n')
+                .replace(/<[^>]*>/g, '')
+                .replace(/&nbsp;/g, ' ')
+                .replace(/&amp;/g, '&')
+                .replace(/&lt;/g, '<')
+                .replace(/&gt;/g, '>')
+                .replace(/\n{3,}/g, '\n\n')
+                .trim()
+            }} />
+          ) : (
+            body
+          )}
         </p>
 
         {/* Footer */}
