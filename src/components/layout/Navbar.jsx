@@ -49,7 +49,7 @@ const Navbar = ({ className, ...props }) => {
             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
               <MessageSquare className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl font-bold text-text-primary hidden sm:block">
+            <span className="text-xl font-bold text-text-primary">
               ForumKu
             </span>
           </Link>
@@ -75,14 +75,6 @@ const Navbar = ({ className, ...props }) => {
 
           {/* Right Side */}
           <div className="flex items-center gap-3">
-            {/* Create Thread Button (if authenticated) */}
-            {isAuthenticated && (
-              <Link to="/create" className="hidden sm:block">
-                <Button size="sm" leftIcon={<PlusCircle className="w-4 h-4" />}>
-                  Buat Thread
-                </Button>
-              </Link>
-            )}
 
             {/* User Menu or Auth Buttons */}
             {loading ? (
