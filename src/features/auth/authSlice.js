@@ -16,6 +16,7 @@ const initialState = {
   isAuthenticated: !!getAuthToken(),
   loading: false,
   error: null,
+  users: [],
 }
 
 /**
@@ -116,6 +117,23 @@ export const updateProfileAsync = createAsyncThunk(
     } catch (error) {
       return rejectWithValue(
         error.message || error.data?.message || 'Failed to update profile'
+      )
+    }
+  }
+)
+
+/**
+ * Fetch all users (for mapping ownerId to names)
+ */
+export const fetchUsersAsync = createAsyncThunk(
+  'auth/fetchUsers',
+  async (_, { rejectWithValue }) => {
+    try {
+      const users = await authAPI.getUsers()
+      return users
+    } catch (error) {
+      return rejectWithValue(
+        error.message || error.data?.message || 'Failed to fetch users'
       )
     }
   }
@@ -231,6 +249,12 @@ const authSlice = createSlice({
         state.loading = false
         state.error = action.payload
       })
+
+    // Fetch Users
+    builder
+      .addCase(fetchUsersAsync.fulfilled, (state, action) => {
+        state.users = action.payload || []
+      })
   },
 })
 
@@ -269,6 +293,11 @@ export const selectAuthToken = (state) => state.auth.token
  * Select complete auth state
  */
 export const selectAuthState = (state) => state.auth
+
+/**
+ * Select all users (for mapping ownerId to names)
+ */
+export const selectUsers = (state) => state.auth.users
 
 // ==================== REDUCER ====================
 

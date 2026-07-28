@@ -1,6 +1,6 @@
 // ThreadList Component - Display list of threads
 // ForumKu Thread Feature
-import { useEffect } from 'react'
+import { useEffect, useMemo } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { MessageCircle, Plus } from 'lucide-react'
 import { Link } from 'react-router-dom'
@@ -16,7 +16,8 @@ import {
   selectFilter,
   selectPagination,
 } from '../threadsSlice'
-import { selectIsAuthenticated } from '../../auth/authSlice'
+import { selectIsAuthenticated, selectUsers } from '../../auth/authSlice'
+import { fetchUsersAsync } from '../../auth/authSlice'
 
 const ThreadList = ({
   showVoting = true,
@@ -33,6 +34,27 @@ const ThreadList = ({
   const filter = useSelector(selectFilter)
   const pagination = useSelector(selectPagination)
   const isAuthenticated = useSelector(selectIsAuthenticated)
+  const users = useSelector(selectUsers)
+
+  // Fetch users to map ownerId to names
+  useEffect(() => {
+    dispatch(fetchUsersAsync())
+  }, [dispatch])
+
+  // Map threads with user data
+  const threadsWithUsers = useMemo(() => {
+    return threads.map(thread => {
+      const user = users.find(u => u.id === thread.ownerId)
+      return {
+        ...thread,
+        author: user ? {
+          id: user.id,
+          name: user.name,
+          avatar: user.avatar,
+        } : thread.author,
+      }
+    })
+  }, [threads, users])
 
   // Fetch threads on mount or filter change
   useEffect(() => {
@@ -45,7 +67,7 @@ const ThreadList = ({
   }, [dispatch, filter])
 
   // Loading state
-  if (loading && threads.length === 0) {
+  if (loading && threadsWithUsers.length === 0) {
     return (
       <div className={clsx('space-y-4', className)} {...props}>
         {[1, 2, 3].map((i) => (
@@ -56,7 +78,7 @@ const ThreadList = ({
   }
 
   // Error state
-  if (error && threads.length === 0) {
+  if (error && threadsWithUsers.length === 0) {
     return (
       <div className={clsx('text-center py-12', className)} {...props}>
         <div className="inline-flex items-center justify-center w-16 h-16 bg-error/10 rounded-full mb-4">
@@ -77,7 +99,7 @@ const ThreadList = ({
   }
 
   // Empty state
-  if (!loading && threads.length === 0) {
+  if (!loading && threadsWithUsers.length === 0) {
     return (
       <div className={clsx('text-center py-12', className)} {...props}>
         <div className="inline-flex items-center justify-center w-16 h-16 bg-primary/10 rounded-full mb-4">
@@ -101,7 +123,7 @@ const ThreadList = ({
   return (
     <div className={clsx('space-y-4', className)} {...props}>
       {/* Thread List */}
-      {threads.map((thread) => (
+      {threadsWithUsers.map((thread) => (
         <ThreadCard
           key={thread.id}
           thread={thread}
@@ -111,7 +133,7 @@ const ThreadList = ({
       ))}
 
       {/* Loading More */}
-      {loading && threads.length > 0 && (
+      {loading && threadsWithUsers.length > 0 && (
         <div className="flex justify-center py-4">
           <Spinner size="md" />
         </div>

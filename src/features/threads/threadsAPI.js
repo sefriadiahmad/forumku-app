@@ -19,11 +19,15 @@ const normalizeThread = (thread) => {
     category: thread.category,
     createdAt: thread.createdAt,
     updatedAt: thread.updatedAt,
-    // Handle owner/user (Dicoding uses 'owner' or 'ownerId')
-    author: thread.owner || {
+    // Handle owner - API only provides ownerId for list, owner object for detail
+    author: thread.owner ? {
+      id: thread.owner.id || thread.ownerId,
+      name: thread.owner.name || thread.ownerId,
+      avatar: thread.owner.avatar || null,
+    } : {
       id: thread.ownerId,
-      name: thread.ownerName,
-      avatar: thread.ownerAvatar,
+      name: thread.ownerId, // Use ownerId as fallback name
+      avatar: null,
     },
     ownerId: thread.ownerId,
     // Convert vote arrays to counts
@@ -46,11 +50,15 @@ const normalizeComment = (comment) => {
     id: comment.id,
     content: comment.content,
     createdAt: comment.createdAt,
-    // Handle owner
-    author: comment.owner || {
+    // Handle owner - API only provides ownerId for list, owner object for detail
+    author: comment.owner ? {
+      id: comment.owner.id || comment.ownerId,
+      name: comment.owner.name || comment.ownerId,
+      avatar: comment.owner.avatar || null,
+    } : {
       id: comment.ownerId,
-      name: comment.ownerName,
-      avatar: comment.ownerAvatar,
+      name: comment.ownerId, // Use ownerId as fallback name
+      avatar: null,
     },
     ownerId: comment.ownerId,
     // Convert vote arrays to counts
