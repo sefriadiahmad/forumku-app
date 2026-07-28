@@ -7,17 +7,7 @@ import { ArrowLeft } from 'lucide-react'
 
 import { createThreadAsync, selectThreadsLoading } from '../features/threads/threadsSlice'
 import { Button, Input, Textarea } from '../components/ui'
-import { CategoryDropdown } from '../features/threads/components'
 import { useToast } from '../components/ui/Toast'
-
-// Available categories for thread creation
-const THREAD_CATEGORIES = [
-  'general',
-  'tech',
-  'lifestyle',
-  'entertainment',
-  'education',
-]
 
 const CreateThreadPage = () => {
   const dispatch = useDispatch()
@@ -28,7 +18,7 @@ const CreateThreadPage = () => {
   const [formData, setFormData] = useState({
     title: '',
     body: '',
-    category: 'general',
+    category: '',
   })
   const [errors, setErrors] = useState({})
 
@@ -45,13 +35,6 @@ const CreateThreadPage = () => {
         [field]: '',
       }))
     }
-  }
-
-  const handleCategoryChange = (e) => {
-    setFormData((prev) => ({
-      ...prev,
-      category: e.target.value,
-    }))
   }
 
   const validate = () => {
@@ -126,19 +109,13 @@ const CreateThreadPage = () => {
         />
 
         {/* Category */}
-        <div className="space-y-2">
-          <label className="block text-sm font-medium text-text-primary">
-            Kategori
-          </label>
-          <CategoryDropdown
-            value={formData.category}
-            onChange={handleCategoryChange}
-            categories={THREAD_CATEGORIES}
-          />
-          <p className="text-sm text-text-tertiary">
-            Pilih kategori yang sesuai dengan thread Anda
-          </p>
-        </div>
+        <Input
+          label="Kategori"
+          placeholder="Contoh: programming, react, javascript"
+          value={formData.category}
+          onChange={handleChange('category')}
+          helperText="Masukkan kategori baru atau yang sudah ada untuk filter di halaman utama"
+        />
 
         {/* Body */}
         <Textarea
