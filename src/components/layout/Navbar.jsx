@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
-import { Menu, X, User, LogOut, Trophy, Home, MessageSquare, PlusCircle, ChevronDown } from 'lucide-react'
+import { Menu, X, User, LogOut, Trophy, Home, PlusCircle, ChevronDown } from 'lucide-react'
 import { clsx } from 'clsx'
 
 import { Avatar, Button, DropdownMenu, DropdownMenuItem, Spinner } from '../ui'
@@ -46,8 +46,8 @@ const Navbar = ({ className, ...props }) => {
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 flex-shrink-0">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <MessageSquare className="w-5 h-5 text-white" />
+            <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+              <img src="/src/assets/logo-forumku-app.png" alt="ForumKu Logo" className="w-7 h-7" />
             </div>
             <span className="text-xl font-bold text-text-primary">
               ForumKu

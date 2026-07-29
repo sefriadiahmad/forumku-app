@@ -1,7 +1,7 @@
 // Footer Component - Application footer
 // ForumKu Layout Component
 import { Link } from 'react-router-dom'
-import { MessageSquare, Heart } from 'lucide-react'
+import { Heart } from 'lucide-react'
 import { clsx } from 'clsx'
 
 const Footer = ({ className, ...props }) => {
@@ -32,8 +32,8 @@ const Footer = ({ className, ...props }) => {
           {/* Brand */}
           <div>
             <Link to="/" className="flex items-center gap-2 mb-3">
-              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-                <MessageSquare className="w-5 h-5 text-white" />
+              <div className="w-8 h-8 rounded-lg flex items-center justify-center">
+                <img src="/src/assets/logo-forumku-app.png" alt="ForumKu Logo" className="w-7 h-7" />
               </div>
               <span className="text-xl font-bold text-text-primary">
                 ForumKu

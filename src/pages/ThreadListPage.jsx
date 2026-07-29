@@ -36,8 +36,11 @@ const ThreadListPage = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <h1 className="text-3xl font-bold text-text-primary">
-          Thread
+          Threads
         </h1>
+        <p className="text-text-secondary text-sm">
+          Temukan thread terbaru dan bergabung dalam diskusi menarik di ForumKu!
+        </p>
 
         {/* Create Thread Button */}
         {isAuthenticated ? (
