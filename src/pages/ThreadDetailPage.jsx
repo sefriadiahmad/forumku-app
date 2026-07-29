@@ -47,7 +47,7 @@ const ThreadDetailPage = () => {
     }
   }, [dispatch, id])
 
-  // Handle vote
+  // Handle vote - with toggle support (click again to remove vote)
   const handleVote = async (direction) => {
     if (!isAuthenticated) {
       navigate('/login')
@@ -58,20 +58,26 @@ const ThreadDetailPage = () => {
     const previousDownvotes = thread.downvotes
     const previousVote = thread.userVote
 
+    // Determine actual direction - toggle if clicking same vote again
+    let actualDirection = direction
+    if (thread.userVote === direction) {
+      actualDirection = 'neutral'
+    }
+
     // Optimistic update
     dispatch(optimisticVote({
       threadId: id,
-      direction,
+      direction: actualDirection,
       previousVote,
     }))
 
     try {
-      if (direction === 'up') {
-        await dispatch(upvoteThreadAsync(id)).unwrap()
-      } else if (direction === 'down') {
-        await dispatch(downvoteThreadAsync(id)).unwrap()
-      } else {
+      if (actualDirection === 'neutral') {
         await dispatch(neutralizeVoteAsync(id)).unwrap()
+      } else if (actualDirection === 'up') {
+        await dispatch(upvoteThreadAsync(id)).unwrap()
+      } else if (actualDirection === 'down') {
+        await dispatch(downvoteThreadAsync(id)).unwrap()
       }
     } catch {
       // Rollback on error

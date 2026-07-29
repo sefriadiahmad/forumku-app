@@ -333,55 +333,32 @@ const threadsSlice = createSlice({
     // Vote actions (handle result from API)
     builder
       .addCase(upvoteThreadAsync.fulfilled, (state, action) => {
-        const { threadId } = action.payload
+        const { threadId, voteType } = action.payload
         const thread = state.threads.find((t) => t.id === threadId)
 
-        // Only update if API returns valid vote counts (> 0 or meaningful data)
-        // Otherwise keep the optimistic update values
-        if (action.payload.upvotes !== undefined &&
-            action.payload.downvotes !== undefined &&
-            (action.payload.upvotes > 0 || action.payload.downvotes > 0)) {
-          if (thread) {
-            thread.upvotes = action.payload.upvotes
-            thread.downvotes = action.payload.downvotes
-          }
-          if (state.currentThread?.id === threadId) {
-            state.currentThread.upvotes = action.payload.upvotes
-            state.currentThread.downvotes = action.payload.downvotes
-          }
-        }
-        // Set userVote to 'up' since API confirmed the vote
+        // Set userVote based on API response voteType
+        // 1 = up, -1 = down, 0 = neutral
+        const newVote = voteType === 1 ? 'up' : voteType === -1 ? 'down' : null
         if (thread) {
-          thread.userVote = 'up'
+          thread.userVote = newVote
         }
         if (state.currentThread?.id === threadId) {
-          state.currentThread.userVote = 'up'
+          state.currentThread.userVote = newVote
         }
       })
 
     builder
       .addCase(downvoteThreadAsync.fulfilled, (state, action) => {
-        const { threadId } = action.payload
+        const { threadId, voteType } = action.payload
         const thread = state.threads.find((t) => t.id === threadId)
 
-        if (action.payload.upvotes !== undefined &&
-            action.payload.downvotes !== undefined &&
-            (action.payload.upvotes > 0 || action.payload.downvotes > 0)) {
-          if (thread) {
-            thread.upvotes = action.payload.upvotes
-            thread.downvotes = action.payload.downvotes
-          }
-          if (state.currentThread?.id === threadId) {
-            state.currentThread.upvotes = action.payload.upvotes
-            state.currentThread.downvotes = action.payload.downvotes
-          }
-        }
-        // Set userVote to 'down' since API confirmed the vote
+        // Set userVote based on API response voteType
+        const newVote = voteType === 1 ? 'up' : voteType === -1 ? 'down' : null
         if (thread) {
-          thread.userVote = 'down'
+          thread.userVote = newVote
         }
         if (state.currentThread?.id === threadId) {
-          state.currentThread.userVote = 'down'
+          state.currentThread.userVote = newVote
         }
       })
 
@@ -390,18 +367,6 @@ const threadsSlice = createSlice({
         const { threadId } = action.payload
         const thread = state.threads.find((t) => t.id === threadId)
 
-        if (action.payload.upvotes !== undefined &&
-            action.payload.downvotes !== undefined &&
-            (action.payload.upvotes > 0 || action.payload.downvotes > 0)) {
-          if (thread) {
-            thread.upvotes = action.payload.upvotes
-            thread.downvotes = action.payload.downvotes
-          }
-          if (state.currentThread?.id === threadId) {
-            state.currentThread.upvotes = action.payload.upvotes
-            state.currentThread.downvotes = action.payload.downvotes
-          }
-        }
         // Always clear userVote after neutralize
         if (thread) {
           thread.userVote = null

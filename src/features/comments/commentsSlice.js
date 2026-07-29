@@ -282,21 +282,25 @@ const commentsSlice = createSlice({
     // Vote actions
     builder
       .addCase(upvoteCommentAsync.fulfilled, (state, action) => {
-        const { commentId } = action.payload
+        const { commentId, voteType } = action.payload
         const comment = state.comments.find((c) => c.id === commentId)
-        if (comment && action.payload.upvotes !== undefined) {
-          comment.upvotes = action.payload.upvotes
-          comment.downvotes = action.payload.downvotes
+
+        // Set userVote based on API response voteType
+        const newVote = voteType === 1 ? 'up' : voteType === -1 ? 'down' : null
+        if (comment) {
+          comment.userVote = newVote
         }
       })
 
     builder
       .addCase(downvoteCommentAsync.fulfilled, (state, action) => {
-        const { commentId } = action.payload
+        const { commentId, voteType } = action.payload
         const comment = state.comments.find((c) => c.id === commentId)
-        if (comment && action.payload.upvotes !== undefined) {
-          comment.upvotes = action.payload.upvotes
-          comment.downvotes = action.payload.downvotes
+
+        // Set userVote based on API response voteType
+        const newVote = voteType === 1 ? 'up' : voteType === -1 ? 'down' : null
+        if (comment) {
+          comment.userVote = newVote
         }
       })
 
@@ -304,9 +308,9 @@ const commentsSlice = createSlice({
       .addCase(neutralizeCommentVoteAsync.fulfilled, (state, action) => {
         const { commentId } = action.payload
         const comment = state.comments.find((c) => c.id === commentId)
-        if (comment && action.payload.upvotes !== undefined) {
-          comment.upvotes = action.payload.upvotes
-          comment.downvotes = action.payload.downvotes
+
+        // Always clear userVote after neutralize
+        if (comment) {
           comment.userVote = null
         }
       })

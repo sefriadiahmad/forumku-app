@@ -2,14 +2,38 @@
 // ForumKu Feature API
 import { api } from '../../services/api'
 import { endpoints } from '../../services/apiEndpoints'
+import { getUserData } from '../../utils/storageUtils'
 
 // ==================== HELPER FUNCTIONS ====================
+
+/**
+ * Get current user ID from storage
+ */
+const getCurrentUserId = () => {
+  const userData = getUserData()
+  return userData?.id || null
+}
+
+/**
+ * Determine user vote from upVotesBy/downVotesBy arrays
+ */
+const getUserVoteFromArrays = (upVotesBy = [], downVotesBy = []) => {
+  const userId = getCurrentUserId()
+  if (!userId) return null
+
+  if (upVotesBy.includes(userId)) return 'up'
+  if (downVotesBy.includes(userId)) return 'down'
+  return null
+}
 
 /**
  * Normalize comment data from Dicoding API
  */
 const normalizeComment = (comment) => {
   if (!comment) return null
+
+  const upVotesBy = comment.upVotesBy || []
+  const downVotesBy = comment.downVotesBy || []
 
   return {
     id: comment.id,
@@ -23,10 +47,12 @@ const normalizeComment = (comment) => {
     },
     ownerId: comment.ownerId,
     // Convert vote arrays to counts
-    upvotes: comment.upVotesBy?.length || 0,
-    downvotes: comment.downVotesBy?.length || 0,
-    upVotesBy: comment.upVotesBy || [],
-    downVotesBy: comment.downVotesBy || [],
+    upvotes: upVotesBy.length,
+    downvotes: downVotesBy.length,
+    upVotesBy,
+    downVotesBy,
+    // Determine current user's vote
+    userVote: getUserVoteFromArrays(upVotesBy, downVotesBy),
   }
 }
 
@@ -118,8 +144,15 @@ export const deleteComment = async (threadId, commentId) => {
  */
 export const upvoteComment = async (threadId, commentId) => {
   const response = await api.post(endpoints.COMMENTS.UP_VOTE(threadId, commentId))
-  // Dicoding API returns: { status, message, data: { vote } }
-  return response.data || response
+
+  // Dicoding API returns: { status, message, data: { vote: { id, userId, commentId, voteType: 1 } } }
+  const voteData = response.data?.data?.vote || response.data?.vote || {}
+  return {
+    threadId,
+    commentId,
+    voteType: voteData.voteType,
+    success: true,
+  }
 }
 
 /**
@@ -128,7 +161,15 @@ export const upvoteComment = async (threadId, commentId) => {
  */
 export const downvoteComment = async (threadId, commentId) => {
   const response = await api.post(endpoints.COMMENTS.DOWN_VOTE(threadId, commentId))
-  return response.data || response
+
+  // Dicoding API returns: { status, message, data: { vote: { id, userId, commentId, voteType: -1 } } }
+  const voteData = response.data?.data?.vote || response.data?.vote || {}
+  return {
+    threadId,
+    commentId,
+    voteType: voteData.voteType,
+    success: true,
+  }
 }
 
 /**
@@ -139,7 +180,15 @@ export const neutralizeCommentVote = async (threadId, commentId) => {
   const response = await api.post(
     endpoints.COMMENTS.NEUTRAL_VOTE(threadId, commentId)
   )
-  return response.data || response
+
+  // Dicoding API returns: { status, message, data: { vote: { id, userId, commentId, voteType: 0 } } }
+  const voteData = response.data?.data?.vote || response.data?.vote || {}
+  return {
+    threadId,
+    commentId,
+    voteType: voteData.voteType,
+    success: true,
+  }
 }
 
 // ==================== API OBJECT ====================
