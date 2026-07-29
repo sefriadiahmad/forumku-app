@@ -116,7 +116,7 @@ export const LeaderboardPodium = ({ entries, className, ...props }) => {
           >
             {/* User info */}
             <div className="text-center mb-2">
-              <div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto rounded-full overflow-hidden border-2 border-primary mb-2">
+              <div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto rounded-full overflow-hidden mb-2">
                 <img
                   src={entry.user?.avatar}
                   alt={entry.user?.name || entry.user?.username}

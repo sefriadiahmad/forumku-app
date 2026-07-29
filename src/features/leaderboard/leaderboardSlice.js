@@ -10,10 +10,6 @@ const initialState = {
   userRank: null,
   loading: false,
   error: null,
-  filter: {
-    period: 'all',
-    category: null,
-  },
   pagination: {
     page: 1,
     size: 20,
@@ -55,18 +51,16 @@ export const fetchUserRankAsync = createAsyncThunk(
 )
 
 /**
- * Refresh leaderboard with current filters
+ * Refresh leaderboard
  */
 export const refreshLeaderboardAsync = createAsyncThunk(
   'leaderboard/refreshLeaderboard',
   async (_, { getState, rejectWithValue }) => {
     try {
-      const { filter, pagination } = getState().leaderboard
+      const { pagination } = getState().leaderboard
       const response = await getLeaderboard({
         page: 1,
         size: pagination.size,
-        period: filter.period,
-        category: filter.category,
       })
       return response
     } catch (error) {
@@ -81,24 +75,6 @@ const leaderboardSlice = createSlice({
   name: 'leaderboard',
   initialState,
   reducers: {
-    // Set period filter
-    setPeriodFilter: (state, action) => {
-      state.filter.period = action.payload
-      state.pagination.page = 1
-    },
-
-    // Set category filter
-    setCategoryFilter: (state, action) => {
-      state.filter.category = action.payload
-      state.pagination.page = 1
-    },
-
-    // Clear all filters
-    clearFilters: (state) => {
-      state.filter = initialState.filter
-      state.pagination.page = 1
-    },
-
     // Clear error
     clearError: (state) => {
       state.error = null
@@ -139,11 +115,6 @@ const leaderboardSlice = createSlice({
             total: action.payload.pagination.total || 0,
             hasMore: action.payload.pagination.hasMore || false,
           }
-        }
-
-        // Update period if returned
-        if (action.payload.period) {
-          state.filter.period = action.payload.period
         }
       })
       .addCase(fetchLeaderboardAsync.rejected, (state, action) => {
@@ -189,9 +160,6 @@ const leaderboardSlice = createSlice({
 // ==================== ACTIONS ====================
 
 export const {
-  setPeriodFilter,
-  setCategoryFilter,
-  clearFilters,
   clearError,
   clearLeaderboard,
 } = leaderboardSlice.actions
@@ -217,11 +185,6 @@ export const selectLeaderboardLoading = (state) => state.leaderboard.loading
  * Select leaderboard error
  */
 export const selectLeaderboardError = (state) => state.leaderboard.error
-
-/**
- * Select leaderboard filter
- */
-export const selectLeaderboardFilter = (state) => state.leaderboard.filter
 
 /**
  * Select leaderboard pagination

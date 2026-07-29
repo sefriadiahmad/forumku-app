@@ -1,7 +1,7 @@
 // Footer Component - Application footer
 // ForumKu Layout Component
 import { Link } from 'react-router-dom'
-import { MessageSquare, Globe, Heart } from 'lucide-react'
+import { MessageSquare, Heart } from 'lucide-react'
 import { clsx } from 'clsx'
 
 const Footer = ({ className, ...props }) => {
@@ -15,8 +15,8 @@ const Footer = ({ className, ...props }) => {
 
   // Social links
   const socialLinks = [
-    { href: 'https://github.com', label: 'GitHub', icon: Globe },
-    { href: 'https://linkedin.com', label: 'LinkedIn', icon: Globe },
+    { href: 'https://github.com/sefriadiahmad', label: 'GitHub', icon: '/src/assets/github.png' },
+    { href: 'https://linkedin.com/in/sefriadiahmad', label: 'LinkedIn', icon: '/src/assets/linkedin.png' },
   ]
 
   return (
@@ -74,7 +74,7 @@ const Footer = ({ className, ...props }) => {
                   className="p-2 rounded-lg bg-surface-secondary text-text-secondary hover:text-primary hover:bg-primary/10 transition-colors"
                   aria-label={social.label}
                 >
-                  <social.icon className="w-5 h-5" />
+                  <img src={social.icon} alt={social.label} className="w-7 h-7" />
                 </a>
               ))}
             </div>

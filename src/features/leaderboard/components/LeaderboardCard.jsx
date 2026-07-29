@@ -1,7 +1,6 @@
 // LeaderboardCard Component - Display single leaderboard entry
 // ForumKu Leaderboard Feature
-import { useNavigate } from 'react-router-dom'
-import { Trophy, Medal, Award, TrendingUp, MessageSquare, ThumbsUp } from 'lucide-react'
+import { Trophy, Medal, Award, TrendingUp } from 'lucide-react'
 import { clsx } from 'clsx'
 
 import { Avatar, Badge } from '../../../components/ui'
@@ -47,13 +46,9 @@ const LeaderboardCard = ({
   className,
   ...props
 }) => {
-  const navigate = useNavigate()
-
   // Extract data from various response formats
   const user = entry.user || entry
   const score = entry.score || entry.totalScore || entry.points || 0
-  const threadsCount = entry.threadsCount || entry.threadCount || entry.threads || 0
-  const upvotesReceived = entry.upvotesReceived || entry.upvotes || 0
   const rankPosition = rank || entry.rank || 0
 
   const isTopThree = rankPosition <= 3
@@ -62,8 +57,6 @@ const LeaderboardCard = ({
   const handleClick = () => {
     if (onClick) {
       onClick(entry)
-    } else if (user?.id) {
-      navigate(`/profile/${user.id}`)
     }
   }
 
@@ -109,48 +102,18 @@ const LeaderboardCard = ({
               </Badge>
             )}
           </div>
-
-          {showDetails && (
-            <div className="flex items-center gap-3 mt-1 text-sm text-text-secondary">
-              <span className="flex items-center gap-1">
-                <TrendingUp className="w-3 h-3" />
-                {score.toLocaleString()} poin
-              </span>
-            </div>
-          )}
         </div>
       </div>
 
       {/* Stats */}
       {showDetails && (
         <div className="hidden sm:flex items-center gap-4 text-sm">
-          <div className="flex items-center gap-1 text-text-secondary">
-            <MessageSquare className="w-4 h-4" />
-            <span>{threadsCount}</span>
-          </div>
-          <div className="flex items-center gap-1 text-text-secondary">
-            <ThumbsUp className="w-4 h-4" />
-            <span>{upvotesReceived}</span>
-          </div>
+          <span className="flex items-center gap-1 text-text-secondary">
+            <TrendingUp className="w-4 h-4" />
+            {score.toLocaleString()} poin
+          </span>
         </div>
       )}
-
-      {/* Arrow indicator */}
-      <div className="opacity-0 group-hover:opacity-100 transition-opacity">
-        <svg
-          className="w-5 h-5 text-text-tertiary"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            strokeWidth={2}
-            d="M9 5l7 7-7 7"
-          />
-        </svg>
-      </div>
     </article>
   )
 }

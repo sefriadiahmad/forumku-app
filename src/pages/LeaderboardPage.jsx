@@ -4,14 +4,12 @@ import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Trophy } from 'lucide-react'
 
-import { LeaderboardList, LeaderboardPodium, LeaderboardFilter } from '../features/leaderboard/components'
+import { LeaderboardList, LeaderboardPodium } from '../features/leaderboard/components'
 import {
   fetchLeaderboardAsync,
-  setPeriodFilter,
   selectLeaderboard,
   selectLeaderboardLoading,
   selectLeaderboardError,
-  selectLeaderboardFilter,
   selectUserRank,
 } from '../features/leaderboard/leaderboardSlice'
 import { selectUser } from '../features/auth/authSlice'
@@ -22,30 +20,22 @@ const LeaderboardPage = () => {
   const leaderboard = useSelector(selectLeaderboard)
   const loading = useSelector(selectLeaderboardLoading)
   const error = useSelector(selectLeaderboardError)
-  const filter = useSelector(selectLeaderboardFilter)
   const userRank = useSelector(selectUserRank)
   const currentUser = useSelector(selectUser)
 
-  // Fetch leaderboard on mount and filter change
+  // Fetch leaderboard on mount
   useEffect(() => {
     dispatch(fetchLeaderboardAsync({
       page: 1,
       size: 20,
-      period: filter.period,
     }))
-  }, [dispatch, filter.period])
-
-  // Handle period change
-  const handlePeriodChange = (period) => {
-    dispatch(setPeriodFilter(period))
-  }
+  }, [dispatch])
 
   // Handle refresh
   const handleRefresh = () => {
     dispatch(fetchLeaderboardAsync({
       page: 1,
       size: 20,
-      period: filter.period,
     }))
   }
 
@@ -58,16 +48,6 @@ const LeaderboardPage = () => {
       <div className="flex items-center gap-3 mb-6">
         <Trophy className="w-8 h-8 text-secondary" />
         <h1 className="text-3xl font-bold text-text-primary">Leaderboard</h1>
-      </div>
-
-      {/* Filter */}
-      <div className="mb-6">
-        <LeaderboardFilter
-          currentPeriod={filter.period}
-          onPeriodChange={handlePeriodChange}
-          onRefresh={handleRefresh}
-          isLoading={loading}
-        />
       </div>
 
       {/* User's Rank (if logged in and available) */}
