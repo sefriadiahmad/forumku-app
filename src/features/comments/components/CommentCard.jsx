@@ -316,5 +316,6 @@ CommentCard.Skeleton = () => (
     </div>
   </div>
 )
+CommentCard.Skeleton.displayName = 'Skeleton'
 
 export default CommentCard

@@ -1,5 +1,4 @@
-// LeaderboardCard Component - Display single leaderboard entry
-// ForumKu Leaderboard Feature
+/* eslint-disable react/display-name */
 import { Trophy, Medal, Award, TrendingUp } from 'lucide-react'
 import { clsx } from 'clsx'
 

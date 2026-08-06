@@ -8,7 +8,7 @@ const NotFoundPage = () => {
       <h1 className="text-9xl font-bold text-primary mb-4">404</h1>
       <p className="text-2xl text-text-primary mb-2">Page Not Found</p>
       <p className="text-text-secondary mb-8">
-        The page you're looking for doesn't exist.
+        The page you`re looking for doesn`t exist.
       </p>
       <Link
         to="/"

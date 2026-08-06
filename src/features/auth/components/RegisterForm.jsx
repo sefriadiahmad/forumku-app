@@ -39,7 +39,6 @@ const RegisterForm = () => {
   })
 
   // Watch password for strength indicator
-  // eslint-disable-next-line react-hooks/incompatible-library
   const password = watch('password', '')
 
   // Calculate password strength

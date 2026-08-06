@@ -1,4 +1,3 @@
-/* eslint-disable react-hooks/set-state-in-effect */
 // DropdownMenu Component - Dropdown menu with trigger and items
 // ForumKu UI Component
 import { useState, useRef, useEffect } from 'react'
