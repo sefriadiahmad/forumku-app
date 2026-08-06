@@ -21,9 +21,9 @@
   --color-text-tertiary: #94A3B8;
 
   /* Vote Colors */
-  --color-upvote-active: #EF4444;
+  --color-upvote-active: #3B82F6;
   --color-upvote-inactive: #9CA3AF;
-  --color-downvote-active: #3B82F6;
+  --color-downvote-active: #EF4444;
   --color-downvote-inactive: #9CA3AF;
 
   /* Status Colors */
