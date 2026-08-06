@@ -5,7 +5,7 @@ import pluginReactRefresh from 'eslint-plugin-react-refresh'
 import globals from 'globals'
 
 export default [
-  { ignores: ['dist', 'node_modules'] },
+  { ignores: ['dist', 'node_modules', 'vitest.config.js', 'playwright.config.js', 'e2e/**', 'src/setupTests.js'] },
   {
     files: ['**/*.{js,jsx}'],
     languageOptions: {
