@@ -47,7 +47,7 @@ const Navbar = ({ className, ...props }) => {
           {/* Logo */}
           <Link to="/" className="flex items-center gap-2 flex-shrink-0">
             <div className="w-8 h-8 rounded-lg flex items-center justify-center">
-              <img src="/src/assets/logo-forumku-app.png" alt="ForumKu Logo" className="w-7 h-7" />
+              <img src="/public/assets/logo-forumku-app.png" alt="ForumKu Logo" className="w-7 h-7" />
             </div>
             <span className="text-xl font-bold text-text-primary">
               ForumKu
