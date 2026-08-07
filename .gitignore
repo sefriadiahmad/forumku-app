@@ -7,15 +7,23 @@ yarn-error.log*
 pnpm-debug.log*
 lerna-debug.log*
 
+# Dependencies
 node_modules
+
+# Build outputs
 dist
 dist-ssr
 *.local
+
+# Environment files
 .env
+.env.local
+.env.*.local
 
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
+!.vscode/settings.json
 .idea
 .DS_Store
 *.suo
@@ -23,3 +31,16 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# ==================== TEST OUTPUTS ====================
+# Playwright test results
+test-results/
+playwright-report/
+playwright/.cache/
+test-results/.last-run.json
+
+# Vitest coverage
+coverage/
+
+# ==================== BUILD ARTIFACTS ====================
+*.tgz
