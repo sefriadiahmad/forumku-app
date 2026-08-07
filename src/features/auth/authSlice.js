@@ -297,7 +297,7 @@ export const selectAuthState = (state) => state.auth
 /**
  * Select all users (for mapping ownerId to names)
  */
-export const selectUsers = (state) => state.auth.users
+export const selectUser = (state) => state.auth.users
 
 // ==================== REDUCER ====================
 
