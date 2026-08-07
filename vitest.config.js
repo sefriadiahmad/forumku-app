@@ -8,7 +8,6 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: './src/setupTests.js',
     include: ['src/**/*.{test,spec}.{js,mjs,cjs,jsx,mjsx}'],
-    pool: 'forks',
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
