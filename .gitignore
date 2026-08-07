@@ -44,3 +44,6 @@ coverage/
 
 # ==================== BUILD ARTIFACTS ====================
 *.tgz
+
+*storybook.log
+storybook-static

@@ -8,6 +8,7 @@ export default defineConfig({
     environment: 'jsdom',
     setupFiles: './src/setupTests.js',
     include: ['src/**/*.{test,spec}.{js,mjs,cjs,jsx,mjsx}'],
+    exclude: ['src/**/stories/**'],
     coverage: {
       provider: 'v8',
       reporter: ['text', 'json', 'html'],
@@ -15,6 +16,7 @@ export default defineConfig({
         'node_modules/',
         'src/setupTests.js',
         '**/*.config.{js,mjs,cjs}',
+        'src/**/stories/**',
       ],
     },
   },
