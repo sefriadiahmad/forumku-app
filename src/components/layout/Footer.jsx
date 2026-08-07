@@ -87,7 +87,7 @@ const Footer = ({ className, ...props }) => {
         {/* Bottom Bar */}
         <div className="border-t border-border mt-8 pt-6 text-center">
           <p className="text-text-tertiary text-sm">
-            © {currentYear} ForumKu. All rights reserved.
+            © {currentYear} ForumKu. Powered by <a href="https://wa.me/6289513116835" className="text-primary hover:underline">Ahmad Sefriadi</a>.
           </p>
         </div>
       </div>
