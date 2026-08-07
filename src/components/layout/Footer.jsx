@@ -15,8 +15,8 @@ const Footer = ({ className, ...props }) => {
 
   // Social links
   const socialLinks = [
-    { href: 'https://github.com/sefriadiahmad', label: 'GitHub', icon: '/public/assets/github.png' },
-    { href: 'https://linkedin.com/in/sefriadiahmad', label: 'LinkedIn', icon: '/public/assets/linkedin.png' },
+    { href: 'https://github.com/sefriadiahmad', label: 'GitHub', icon: '/assets/github.png' },
+    { href: 'https://linkedin.com/in/sefriadiahmad', label: 'LinkedIn', icon: '/assets/linkedin.png' },
   ]
 
   return (
@@ -33,7 +33,7 @@ const Footer = ({ className, ...props }) => {
           <div>
             <Link to="/" className="flex items-center gap-2 mb-3">
               <div className="w-8 h-8 rounded-lg flex items-center justify-center">
-                <img src="/public/assets/logo-forumku-app.png" alt="ForumKu Logo" className="w-7 h-7" />
+                <img src="/assets/logo-forumku-app.png" alt="ForumKu Logo" className="w-7 h-7" />
               </div>
               <span className="text-xl font-bold text-text-primary">
                 ForumKu
