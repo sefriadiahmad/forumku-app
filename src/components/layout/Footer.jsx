@@ -15,8 +15,8 @@ const Footer = ({ className, ...props }) => {
 
   // Social links
   const socialLinks = [
-    { href: 'https://github.com/sefriadiahmad', label: 'GitHub', icon: '/src/assets/github.png' },
-    { href: 'https://linkedin.com/in/sefriadiahmad', label: 'LinkedIn', icon: '/src/assets/linkedin.png' },
+    { href: 'https://github.com/sefriadiahmad', label: 'GitHub', icon: '/assets/github.png' },
+    { href: 'https://linkedin.com/in/sefriadiahmad', label: 'LinkedIn', icon: '/assets/linkedin.png' },
   ]
 
   return (
@@ -33,7 +33,7 @@ const Footer = ({ className, ...props }) => {
           <div>
             <Link to="/" className="flex items-center gap-2 mb-3">
               <div className="w-8 h-8 rounded-lg flex items-center justify-center">
-                <img src="/src/assets/logo-forumku-app.png" alt="ForumKu Logo" className="w-7 h-7" />
+                <img src="/assets/logo-forumku-app.png" alt="ForumKu Logo" className="w-7 h-7" />
               </div>
               <span className="text-xl font-bold text-text-primary">
                 ForumKu
@@ -87,7 +87,7 @@ const Footer = ({ className, ...props }) => {
         {/* Bottom Bar */}
         <div className="border-t border-border mt-8 pt-6 text-center">
           <p className="text-text-tertiary text-sm">
-            © {currentYear} ForumKu. All rights reserved.
+            © {currentYear} ForumKu. Powered by <a href="https://wa.me/6289513116835" className="text-primary hover:underline">Ahmad Sefriadi</a>.
           </p>
         </div>
       </div>

@@ -61,6 +61,81 @@ ForumKu adalah aplikasi forum diskusi interaktif yang dibangun dengan React, Red
 
 ---
 
+## Testing
+
+Proyek ini memiliki comprehensive testing setup dengan **118 total tests**.
+
+### Unit Tests (Vitest)
+```bash
+# Run all unit tests
+npm run test:run
+
+# Run tests in watch mode
+npm test
+
+# Run tests with coverage
+npm run test:coverage
+```
+
+### E2E Tests (Playwright)
+```bash
+# Run E2E tests
+npm run e2e
+
+# Run E2E tests with UI
+npm run e2e:ui
+
+# Run E2E tests in debug mode
+npm run e2e:debug
+```
+
+### Storybook
+```bash
+# Start Storybook dev server (port 6006)
+npm run storybook
+
+# Build static Storybook
+npm run build-storybook
+```
+
+### Test Coverage
+
+| Category | Tests | Files |
+|----------|-------|-------|
+| Reducer Tests | 39 | `threadsSlice.test.js`, `authSlice.test.js` |
+| Thunk Tests | 23 | `threadsThunk.test.js`, `authThunk.test.js` |
+| Component Tests | 42 | `Button.test.jsx`, `LoginForm.test.jsx` |
+| E2E Tests | 14 | `login.spec.js` |
+| **TOTAL** | **118** | **9 files** |
+
+---
+
+## CI/CD
+
+Proyek ini menggunakan GitHub Actions untuk CI/CD dengan pipeline berikut:
+
+### Workflow Jobs
+
+1. **Lint** - ESLint code quality checks
+2. **Test** - Vitest unit & component tests
+3. **E2E** - Playwright E2E tests
+4. **Build** - Production build verification
+
+### Branch Protection
+
+Branch `main` dilindungi dengan:
+- ✅ Require pull request before merging
+- ✅ Require status checks to pass before merging
+- ✅ Require branches to be up to date before merging
+
+### Deployment
+
+Aplikasi di-deploy otomatis ke Vercel pada setiap merge ke branch `main`.
+
+**Live Demo**: https://forumku-app.vercel.app/
+
+---
+
 ## Cara Instalasi dan Menjalankan Proyek
 
 ### Prerequisites
@@ -71,7 +146,7 @@ ForumKu adalah aplikasi forum diskusi interaktif yang dibangun dengan React, Red
 
 1. Clone repository
 ```bash
-git clone <repository-url>
+git clone https://github.com/sefriadiahmad/forumku-app.git
 cd forumku-app
 ```
 
@@ -80,23 +155,23 @@ cd forumku-app
 npm install
 ```
 
-3. Buat file environment
-```bash
-cp .env.example .env
-```
-
-4. Edit file `.env` dengan konfigurasi yang sesuai
-```env
-VITE_API_BASE_URL=
-VITE_API_TIMEOUT=
-```
-
-5. Jalankan development server
+3. Jalankan development server
 ```bash
 npm run dev
 ```
 
-Aplikasi akan tersedia di `http://localhost:5173` (atau port lain yang ditampilkan di terminal).
+Aplikasi akan tersedia di `http://localhost:5173`
+
+### Setup untuk Development
+
+```bash
+# Copy environment file
+cp .env.example .env
+
+# Edit .env dengan konfigurasi yang sesuai
+VITE_API_BASE_URL=VITE_API_URL=http://localhost:3000/api
+VITE_API_TIMEOUT=10000
+```
 
 ### Build untuk Production
 ```bash
@@ -110,54 +185,74 @@ Build akan tersimpan di folder `dist/`.
 npm run preview
 ```
 
+### Linting
+```bash
+npm run lint
+```
+
 ---
 
 ## Struktur Folder
 
 ```
 forumku-app/
-├── public/                    # Static assets
+├── .github/
+│   └── workflows/
+│       └── ci.yml              # GitHub Actions CI/CD
+├── .storybook/
+│   ├── main.js                 # Storybook configuration
+│   └── preview.jsx             # Storybook preview config
+├── e2e/
+│   └── login.spec.js           # E2E login tests (Playwright)
+├── public/
+│   └── assets/                 # Static assets (logos, icons)
 ├── src/
-│   ├── components/            # Shared components
-│   │   ├── auth/            # Auth-related components
+│   ├── components/
+│   │   ├── auth/
 │   │   │   └── ProtectedRoute.jsx
-│   │   ├── layout/          # Layout components
+│   │   ├── layout/
 │   │   │   ├── Navbar.jsx
 │   │   │   ├── Footer.jsx
 │   │   │   └── PageLayout.jsx
-│   │   └── ui/              # Reusable UI components
-│   │       ├── Button.jsx
-│   │       ├── Input.jsx
-│   │       ├── Textarea.jsx
-│   │       ├── Avatar.jsx
-│   │       ├── Badge.jsx
-│   │       ├── Card.jsx
-│   │       ├── Modal.jsx
-│   │       ├── Skeleton.jsx
-│   │       ├── Spinner.jsx
-│   │       ├── VoteButton.jsx
-│   │       ├── VoteGroup.jsx
-│   │       ├── DropdownMenu.jsx
-│   │       ├── CategoryBadge.jsx
-│   │       └── Toast/
-│   │           ├── Toast.jsx
-│   │           └── ToastProvider.jsx
-│   │
-│   ├── features/            # Feature-based modules
-│   │   ├── auth/           # Authentication feature
+│   │   ├── ui/
+│   │   │   ├── Button.jsx
+│   │   │   ├── Input.jsx
+│   │   │   ├── Avatar.jsx
+│   │   │   ├── Badge.jsx
+│   │   │   ├── Card.jsx
+│   │   │   ├── Skeleton.jsx
+│   │   │   ├── Spinner.jsx
+│   │   │   ├── VoteButton.jsx
+│   │   │   ├── DropdownMenu.jsx
+│   │   │   ├── Textarea.jsx
+│   │   │   ├── Toast.jsx
+│   │   │   ├── index.js
+│   │   │   ├── stories/              # Storybook stories
+│   │   │   │   ├── Button.stories.jsx
+│   │   │   │   ├── Input.stories.jsx
+│   │   │   │   ├── Avatar.stories.jsx
+│   │   │   │   └── Spinner.stories.jsx
+│   │   │   └── tests/               # Component tests
+│   │   │       ├── Button.test.jsx
+│   │   │       └── LoginForm.test.jsx
+│   │   │
+│   ├── features/
+│   │   ├── auth/
 │   │   │   ├── authAPI.js
 │   │   │   ├── authSlice.js
+│   │   │   ├── authSlice.test.js     # Reducer tests
+│   │   │   ├── authThunk.test.js     # Thunk tests
 │   │   │   └── components/
 │   │   │       └── LoginForm.jsx
 │   │   │
-│   │   ├── comments/       # Comments feature
+│   │   ├── comments/
 │   │   │   ├── commentsAPI.js
 │   │   │   ├── commentsSlice.js
 │   │   │   └── components/
 │   │   │       ├── CommentCard.jsx
 │   │   │       └── CommentSection.jsx
 │   │   │
-│   │   ├── leaderboard/    # Leaderboard feature
+│   │   ├── leaderboard/
 │   │   │   ├── leaderboardAPI.js
 │   │   │   ├── leaderboardSlice.js
 │   │   │   └── components/
@@ -165,20 +260,22 @@ forumku-app/
 │   │   │       ├── LeaderboardList.jsx
 │   │   │       └── LeaderboardPodium.jsx
 │   │   │
-│   │   └── threads/        # Threads feature
+│   │   └── threads/
 │   │       ├── threadsAPI.js
 │   │       ├── threadsSlice.js
+│   │       ├── threadsSlice.test.js   # Reducer tests
+│   │       ├── threadsThunk.test.js   # Thunk tests
 │   │       └── components/
 │   │           ├── ThreadCard.jsx
 │   │           ├── ThreadList.jsx
 │   │           └── CategoryFilter.jsx
 │   │
-│   ├── hooks/               # Custom React hooks
+│   ├── hooks/
 │   │   ├── useAuth.js
 │   │   ├── useRelativeTime.js
 │   │   └── useToast.js
 │   │
-│   ├── pages/               # Page components
+│   ├── pages/
 │   │   ├── HomePage.jsx
 │   │   ├── LoginPage.jsx
 │   │   ├── RegisterPage.jsx
@@ -186,38 +283,30 @@ forumku-app/
 │   │   ├── ThreadDetailPage.jsx
 │   │   └── LeaderboardPage.jsx
 │   │
-│   ├── services/            # API configuration
-│   │   ├── api.js          # Base API service
-│   │   └── apiEndpoints.js # API endpoint constants
+│   ├── services/
+│   │   ├── api.js
+│   │   └── apiEndpoints.js
 │   │
-│   ├── store/               # Redux store
+│   ├── store/
 │   │   └── index.js
 │   │
-│   ├── utils/               # Utility functions
-│   │   ├── storageUtils.js # LocalStorage helpers
-│   │   └── dateUtils.js    # Date formatting helpers
+│   ├── utils/
+│   │   ├── storageUtils.js
+│   │   └── dateUtils.js
 │   │
-│   ├── App.jsx             # Main app component
-│   ├── main.jsx            # Entry point
-│   └── index.css           # Global styles
+│   ├── App.jsx
+│   ├── main.jsx
+│   ├── index.css
+│   └── setupTests.js           # Test setup (jest-dom)
 │
-├── .env.example            # Environment template
+├── vitest.config.js            # Vitest configuration
+├── playwright.config.js       # Playwright configuration
+├── .env.example
 ├── index.html
 ├── package.json
 ├── vite.config.js
-├── tailwind.config.js
 └── README.md
 ```
-
-### Penjelasan Struktur
-
-Setiap feature module mengikuti pola Redux Toolkit:
-
-- `*API.js` - Berisi fungsi-fungsi pemanggilan API
-- `*Slice.js` - Berisi Redux slice dengan actions, reducers, dan selectors
-- `components/` - Komponen React spesifik untuk feature tersebut
-
-Pendekatan ini memisahkan logika berdasarkan fitur dan membuat kode lebih terorganisir.
 
 ---
 
@@ -225,7 +314,7 @@ Pendekatan ini memisahkan logika berdasarkan fitur dan membuat kode lebih terorg
 
 ### Frontend Framework
 - **React 19** - Library utama untuk membangun UI
-- **React Router DOM v6** - Routing dan navigasi
+- **React Router DOM v7** - Routing dan navigasi
 
 ### State Management
 - **Redux Toolkit** - State management dengan createAsyncThunk, createSlice, dan createSelector
@@ -237,7 +326,14 @@ Pendekatan ini memisahkan logika berdasarkan fitur dan membuat kode lebih terorg
 
 ### Build Tools
 - **Vite** - Build tool dan development server
-- **Vitest** - Testing framework (opsional)
+
+### Testing
+- **Vitest** - Unit & component testing framework
+- **Playwright** - E2E testing framework
+- **Storybook** - Component documentation & development
+- **@testing-library/react** - React component testing
+- **@testing-library/jest-dom** - Jest DOM matchers
+- **@testing-library/user-event** - User interaction simulation
 
 ### API & HTTP
 - **Fetch API** - Untuk HTTP requests
@@ -247,10 +343,15 @@ Pendekatan ini memisahkan logika berdasarkan fitur dan membuat kode lebih terorg
 - **Lucide React** - Icon library
 - **React Hook Form** - Form handling
 - **Zod** - Schema validation
+- **date-fns** - Date formatting
 
 ### Development
 - **ESLint** - Code linting
 - **Prettier** - Code formatting
+
+### CI/CD
+- **GitHub Actions** - Continuous integration & deployment
+- **Vercel** - Cloud deployment platform
 
 ---
 
@@ -275,20 +376,19 @@ Vote state user persisten setelah refresh karena setiap fetch thread/comment men
 
 ## Deployment
 
-Aplikasi ini dapat di-deploy ke berbagai static hosting services:
+Aplikasi di-deploy otomatis ke **Vercel** pada setiap push ke branch `main`.
 
-- Vercel
-- Netlify
-- GitHub Pages
-- AWS S3
-- Cloudflare Pages
+**Live Demo**: https://forumku-app.vercel.app/
 
-Build production dapat dilakukan dengan:
+### Manual Deployment
+
 ```bash
+# Build production
 npm run build
-```
 
-Hasil build di folder `dist/` dapat langsung di-serve sebagai static site.
+# Deploy dist/ folder to Vercel
+vercel --prod
+```
 
 ---
 
