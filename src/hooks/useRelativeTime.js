@@ -88,18 +88,17 @@ const formatRelative = (date, options = {}) => {
  * @returns {string} Relative time string
  */
 export const useRelativeTime = (date, options = {}) => {
-  // Calculate initial value during render
-  const initialTime = formatRelative(date, options)
-  const [relativeTime, setRelativeTime] = useState(initialTime)
+  const [relativeTime, setRelativeTime] = useState(() => formatRelative(date, options))
 
   useEffect(() => {
-    // Update every minute for accuracy
+    setRelativeTime(formatRelative(date, options))
+
     const interval = setInterval(() => {
       setRelativeTime(formatRelative(date, options))
-    }, 60000) // Update every minute
+    }, 60000)
 
     return () => clearInterval(interval)
-  }, [date]) // eslint-disable-line react-hooks/exhaustive-deps
+  }, [date, options])
 
   return relativeTime
 }
