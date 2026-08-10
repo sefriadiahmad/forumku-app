@@ -1,6 +1,6 @@
 // validationUtils.js - Form validation utilities
 // ForumKu Utility Functions
-import { z } from 'zod'
+import * as z from 'zod'
 
 // ==================== ZOD SCHEMAS ====================
 
